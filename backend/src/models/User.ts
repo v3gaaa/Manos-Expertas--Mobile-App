@@ -7,6 +7,15 @@ export interface IUser extends Document {
   password: string;
   phoneNumber: string;
   profilePicture: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  admin: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const UserSchema: Schema = new mongoose.Schema({
@@ -15,7 +24,16 @@ const UserSchema: Schema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   phoneNumber: { type: String, required: true },
-  profilePicture: { type: String, required: false }
+  profilePicture: { type: String, required: false },
+  address: {
+    street: { type: String, required: false },
+    city: { type: String, required: false },
+    state: { type: String, required: false },
+    zipCode: { type: String, required: false }
+  },
+  admin: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
 export default mongoose.model<IUser>('User', UserSchema);
