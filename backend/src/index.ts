@@ -23,4 +23,10 @@ mongoose.connect(process.env.MONGO_URI || '')
 // Routes
 app.use('/api', userRoutes);
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+//Main route
+app.get('/api', (req: Request, res: Response) => {
+  res.send('Server running');
+});
+
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}/api`));
+
