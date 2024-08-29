@@ -27,4 +27,10 @@ app.use('/api', userRoutes);
 app.use('/api', workerRoutes);
 app.use('/api', bookingRoutes);
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+//Main route
+app.get('/api', (req: Request, res: Response) => {
+  res.send('Server running');
+});
+
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}/api`));
+

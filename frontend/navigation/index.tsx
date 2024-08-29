@@ -1,17 +1,11 @@
-/**
- * If you are not familiar with React Navigation, refer to the "Fundamentals" guide:
- * https://reactnavigation.org/docs/getting-started
- *
- */
-
 import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createStackNavigator } from "@react-navigation/stack";
 import * as React from "react";
-import {Theme} from '../constants/theme';
-import LoginScreen from "../app/login";
-import RegisterScreen from "../app/register";
+import { Theme } from '../constants/theme';
+import Login from "../app/login";
+import Register from "../app/register";
 import Welcome from "../app/welcome";
-
+import Home from "../app/home";
 import { RootStackParamList } from "../types";
 
 const theme = {
@@ -30,22 +24,15 @@ export default function Navigation() {
   );
 }
 
-/**
- * A root stack navigator is often used for displaying modals on top of all other content.
- * https://reactnavigation.org/docs/modal
- */
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const Stack = createStackNavigator<RootStackParamList>();
 
-function RootNavigator() {
+const RootNavigator: React.FC = () => {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="welcome" component={Welcome} />
-      <Stack.Screen name="login" component={LoginScreen} />
-      <Stack.Screen name="Register" component={RegisterScreen} />
+    <Stack.Navigator initialRouteName="Welcome">
+      <Stack.Screen name="Welcome" component={Welcome} />
+      <Stack.Screen name="Register" component={Register} />
+      <Stack.Screen name="Login" component={Login} />
+      <Stack.Screen name="Home" component={Home} />
     </Stack.Navigator>
   );
-}
+};

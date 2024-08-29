@@ -1,0 +1,9 @@
+{
+    "users": [
+      {
+        "email": "svega03@hotmail.com",
+        "hashedPassword": "67d39604f6da08ebe41d501d6ee94d08829391da6870082d04476a4e654c62bcf8ab018bf554c2b81d7029a2dc600ccc88054724af6cd7834c2d9bdb82f65dd2",
+        "salt": "ebb5c49fc2f49d7a66a13085f4cc51c0"
+      }
+    ]
+}

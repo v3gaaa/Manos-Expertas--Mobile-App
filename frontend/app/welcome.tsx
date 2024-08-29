@@ -8,7 +8,7 @@ import Spacing from '../constants/spacing';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'welcome'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'Welcome'>;
 
 const Welcome:React.FC<Props> = ({navigation:{navigate}}) => {
 return (
@@ -25,7 +25,7 @@ return (
         </View>
         <View style={{paddingHorizontal: spacing*2, paddingTop:Spacing*5, flexDirection:'row'}}>
             <TouchableOpacity 
-                onPress={()=>navigate('login')}
+                onPress={()=>navigate('Login')}
                 style={{
                 backgroundColor: Theme.colors.bamxYellow,
                 borderRadius: Spacing,
