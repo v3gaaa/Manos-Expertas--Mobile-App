@@ -16,7 +16,7 @@ export interface IWorker extends Document {
   updatedAt: Date;
 }
 
-// Define the Laborer schema
+// Define the Worker schema
 const WorkerSchema: Schema = new mongoose.Schema({
   name: { type: String, required: true },
   lastName: { type: String, required: true },

@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import userRoutes from './routes/userRoutes';
 import workerRoutes from './routes/workerRoutes';
+import bookingRoutes from './routes/bookingRoutes';
 
 // To run: npx ts-node src/index.ts
 
@@ -24,5 +25,6 @@ mongoose.connect(process.env.MONGO_URI || '')
 // Routes
 app.use('/api', userRoutes);
 app.use('/api', workerRoutes);
+app.use('/api', bookingRoutes);
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
