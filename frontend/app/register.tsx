@@ -1,15 +1,45 @@
-import React from 'react';
-import { SafeAreaView, StyleSheet, View, Text, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import React, {useState} from 'react';
+import { SafeAreaView, StyleSheet, View, Text, TouchableOpacity, Button, Alert, TextInput, ScrollView } from 'react-native';
 import { Theme } from '../constants/theme';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types';
+import 'react-native-get-random-values';
+import CryptoJS from 'crypto-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 import AppTextInput from '../components/appTextInput';
+import users from '../data.json';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
-const Register: React.FC<Props> = ({navigation:{navigate}}) => {
+const Register: React.FC=() => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [name, setName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [phone, setPhone] = useState('');
+    const navigation = useNavigation();
+
+    const handleRegister = async () => {
+        const salt = CryptoJS.lib.WordArray.random(128/8).toString();
+        const hashedPassword = CryptoJS.SHA512(password+salt).toString();
+        const newUser = {
+            email,
+            hashedPassword,
+            salt,
+            name,
+            lastName,
+            phone,
+        };
+        users.users.push(newUser);
+        console.log('Updated users:', JSON.stringify(users, null, 2));
+
+        const token = 'fake-jwt-token-'+ new Date().getTime();
+        await AsyncStorage.setItem('userToken', token);
+
+        Alert.alert('Success', 'Cuenta creada con éxito');
+        navigation.navigate('Home');
+    };
+
     return (
         <SafeAreaView>
             <ScrollView>
@@ -20,16 +50,30 @@ const Register: React.FC<Props> = ({navigation:{navigate}}) => {
                         
                     </View>
                     <View style={{marginVertical:spacing*2}}>
-                        <AppTextInput placeholder='Email'/>
-                        <AppTextInput placeholder="Nombre"/>
-                        <AppTextInput placeholder="Apellido"/>
-                        <AppTextInput placeholder="Telefono"/>
-                        <AppTextInput placeholder="Password"/>
+                        <AppTextInput placeholder="Email"
+                            value={email} 
+                            onChangeText={setEmail} 
+                            keyboardType="email-address" 
+                            autoCapitalize='none'/>
+                        <AppTextInput placeholder="Nombre"
+                            value={name}
+                            onChangeText={setName}/>
+                        <AppTextInput placeholder="Apellido"
+                            value={lastName}
+                            onChangeText={setLastName}/>
+                        <AppTextInput placeholder="Telefono"
+                            value={phone}
+                            onChangeText={setPhone}
+                            keyboardType="phone-pad"/>
+                        <AppTextInput placeholder="Password"
+                            value={password}
+                            onChangeText={setPassword}
+                            secureTextEntry/>
                     </View>
-                    <TouchableOpacity style={styles.btn} >
+                    <TouchableOpacity onPress={() => {handleRegister}}style={styles.btn} >
                         <Text style={styles.btnText}>Regístrate</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigate('login')} style={{padding:spacing}}>
+                    <TouchableOpacity onPress={() => navigation.navigate('Login')} style={{padding:spacing}}>
                         <Text style={{
                             fontFamily: fonts.PoppinsSemiBold,
                             fontWeight: '700',

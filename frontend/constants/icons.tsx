@@ -29,7 +29,7 @@ export const icons = {
   AddFile: (size = 24, color = "black") => <AntDesign name="addfile" size={size} color={color} />,
   Check: (size = 24, color = "black") => <Entypo name="check" size={size} color={color} />,
   Done: (size = 24, color = "black") => <Entypo name="check" size={size} color={color} />,
-
+  Celebrate: (size = 24, color = "black") => <MaterialCommunityIcons name="party-popper" size={size} color={color} />,
   // Social Media Icons
   facebook: (size = 24, color = "black", backgroundColor?: string) => (
     <View style={[styles.iconContainer, backgroundColor ? { backgroundColor } : undefined]}>
