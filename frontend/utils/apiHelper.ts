@@ -13,6 +13,7 @@ export interface IUser{
     state: string;
     zipCode: string;
   };
+  admin: boolean;
   salt: string;
 }
 
@@ -29,7 +30,9 @@ export async function logIn(email: string, password: string) {
     if (!response.ok) {
       throw new Error('Error en la solicitud de inicio de sesión');
     }
-    return await response.json();
+    const { token, user } = await response.json();
+    
+    return { token, user };
   } catch (error) {
     console.error(error);
     return null;

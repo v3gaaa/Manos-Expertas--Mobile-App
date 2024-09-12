@@ -16,19 +16,24 @@ const Login: React.FC = () => {
 
   const handleLogIn = async () => {
     try {
-      const user = await getUserByEmail(email);
-      if (!user) {
-        Alert.alert('Error', 'Usuario no encontrado');
-        return;
-      }
-
       const response = await logIn(email, password);
 
-      if (response.token) {
-        // Guarda el token en AsyncStorage
-        await AsyncStorage.setItem('authToken', response.token);
-        Alert.alert('Éxito', 'Inicio de sesión exitoso');
-        navigation.navigate('Home'); // Navega a la pantalla principal o la que desees
+      if (response && response.token) {
+        // Obtiene el token y los datos del usuario
+        const { token, user } = response;
+
+        // Guarda el token y los datos del usuario en el almacenamiento local
+        await AsyncStorage.setItem('authToken', token);
+        await AsyncStorage.setItem('user', JSON.stringify(user)); // Optional: store user details
+
+        Alert.alert('Éxito', `Inicio de sesión exitoso. Bienvenido, ${user.name}!`);
+
+        // Navega basado en permisos del usuario
+        if (user.admin) {
+          navigation.navigate('AdminHome'); // Si es admin, navega a la pantalla de inicio de admin
+        } else {
+          navigation.navigate('Home'); // Navegar a la pantalla de inicio
+        }
       } else {
         Alert.alert('Error', 'Correo o contraseña incorrectos');
       }

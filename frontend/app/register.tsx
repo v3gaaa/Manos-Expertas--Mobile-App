@@ -38,6 +38,7 @@ const Register: React.FC = () => {
           state: '',
           zipCode: ''
         },
+        admin: false,
         salt,
       };
 

@@ -6,6 +6,7 @@ import Login from "../app/login";
 import Register from "../app/register";
 import Welcome from "../app/welcome";
 import Home from "../app/home";
+import AdminHome from "../app/adminHome";
 import { RootStackParamList } from "../types";
 
 const theme = {
@@ -33,6 +34,7 @@ const RootNavigator: React.FC = () => {
       <Stack.Screen name="Register" component={Register} />
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="AdminHome" component={AdminHome} />
     </Stack.Navigator>
   );
 };
