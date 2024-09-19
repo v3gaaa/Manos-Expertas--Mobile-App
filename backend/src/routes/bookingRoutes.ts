@@ -24,6 +24,20 @@ router.get('/bookings/:id', async (req: Request, res: Response) => {
   }
 });
 
+// Get all bookings by worker ID
+router.get('/bookings/worker/:workerId', async (req: Request, res: Response) => {
+  try {
+    const workerId = req.params.workerId;
+
+    // Find bookings by worker ID
+    const bookings = await Booking.find({ worker: workerId }).populate('worker').populate('user');
+    
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
+});
+
 // Create a new booking
 router.post('/bookings', async (req: Request, res: Response) => {
   const { worker, user, startDate, endDate } = req.body;
