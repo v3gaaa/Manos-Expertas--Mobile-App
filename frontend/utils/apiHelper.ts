@@ -96,3 +96,56 @@ export async function getUserByEmail(email: string) {
     return null;
   }
 }
+
+export async function getWorkersByProfession(profession: string) {
+  try {
+    const response = await fetch(`${API_URL}/workers/profession/${profession}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Error al obtener los trabajadores por profesión');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+export async function getWorkersByQuery(query: string) {
+  try {
+    const response = await fetch(`${API_URL}/workers/search?query=${query}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Error fetching workers by query');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+export async function getProfessions() {
+  try {
+    const response = await fetch(`${API_URL}/workers/professions`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Error fetching professions');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
