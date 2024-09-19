@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import userRoutes from './routes/userRoutes';
 import workerRoutes from './routes/workerRoutes';
 import bookingRoutes from './routes/bookingRoutes';
+import reviewRoutes from './routes/reviewRoutes';
 
 // To run: npx ts-node src/index.ts
 
@@ -26,6 +27,7 @@ mongoose.connect(process.env.MONGO_URI || '')
 app.use('/api', userRoutes);
 app.use('/api', workerRoutes);
 app.use('/api', bookingRoutes);
+app.use('/api', reviewRoutes);
 
 //Main route
 app.get('/api', (req: Request, res: Response) => {
