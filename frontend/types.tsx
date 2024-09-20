@@ -14,6 +14,7 @@ export type RootStackParamList = {
   Login: undefined;
   Home: undefined;
   AdminHome: undefined;
+  SearchScreen: { query: string };
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =

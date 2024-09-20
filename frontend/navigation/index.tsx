@@ -7,6 +7,7 @@ import Register from "../app/register";
 import Welcome from "../app/welcome";
 import Home from "../app/home";
 import AdminHome from "../app/adminHome";
+import searchScreen from "../app/searchScreen";
 import { RootStackParamList } from "../types";
 
 const theme = {
@@ -33,7 +34,12 @@ const RootNavigator: React.FC = () => {
       <Stack.Screen name="Welcome" component={Welcome} />
       <Stack.Screen name="Register" component={Register} />
       <Stack.Screen name="Login" component={Login} />
-      <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen 
+        name="Home" 
+        component={Home} 
+        options={{ headerShown: false }} // Disable default header for Home
+      />
+      <Stack.Screen name="SearchScreen" component={searchScreen} />
       <Stack.Screen name="AdminHome" component={AdminHome} />
     </Stack.Navigator>
   );
