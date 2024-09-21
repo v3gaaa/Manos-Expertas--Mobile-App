@@ -16,10 +16,8 @@ router.get('/workers', async (req: Request, res: Response) => {
 router.get('/workers/search', async (req: Request, res: Response) => {
   const { query } = req.query;
 
-  console.log('Search query:', query); // Debugging the query
-
   try {
-    if (!query) {
+    if (!query || typeof query !== 'string' || query.trim() === '') {
       return res.status(400).json({ message: 'Search query is required' });
     }
 
@@ -28,10 +26,9 @@ router.get('/workers/search', async (req: Request, res: Response) => {
         { name: { $regex: query, $options: 'i' } },
         { lastName: { $regex: query, $options: 'i' } },
         { profession: { $regex: query, $options: 'i' } },
+        { description: { $regex: query, $options: 'i' } },
       ],
     });
-
-    console.log('Fetched workers:', workers); // Debugging the workers
 
     if (workers.length === 0) {
       return res.status(404).json({ message: 'No workers found' });
@@ -39,13 +36,11 @@ router.get('/workers/search', async (req: Request, res: Response) => {
 
     res.json(workers);
   } catch (error) {
-    if (error instanceof Error) {
-      res.status(500).json({ message: error.message });
-    } else {
-      res.status(500).json({ message: 'An unknown error occurred' });
-    }
+    console.error('Error searching workers:', error);
+    res.status(500).json({ message: 'An unknown error occurred' });
   }
 });
+
 
 router.get('/workers/professions', async (req: Request, res: Response) => {
   try {
