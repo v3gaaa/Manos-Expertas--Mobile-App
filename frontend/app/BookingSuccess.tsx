@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: fonts.PoppinsSemiBold,
-    fontSize: Theme.size.xxl,
+    fontSize: Theme.size.xl,
     color: Theme.colors.bamxGreen,
     marginBottom: spacing * 3,
     textAlign: 'center',

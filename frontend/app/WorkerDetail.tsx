@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: Theme.size.sm,
-    fontFamily: fonts.PoppinsRegular,
+    fontFamily: fonts.PoppinsMedium,
     color: Theme.colors.black,
     lineHeight: 22,
     marginTop: spacing,
@@ -136,6 +136,6 @@ const styles = StyleSheet.create({
     marginTop: spacing * 2,
     padding: spacing,
     borderRadius: 50,
-    backgroundColor: Theme.colors.lightGreen,
+    backgroundColor: Theme.colors.bamxGreen,
   },
 });

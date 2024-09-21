@@ -36,6 +36,13 @@ export default function TimeAvailability() {
         selectedDate,
         startDate: selectedStartTime,
         endDate: selectedEndTime,
+        selectedTime: `${selectedStartTime} - ${selectedEndTime}`,
+      } as {
+        workerId: string;
+        selectedDate: string;
+        startDate: string;
+        endDate: string;
+        selectedTime: string;
       });
     }
   };
@@ -164,7 +171,7 @@ const styles = StyleSheet.create({
     ...Theme.shadows.shadow,
   },
   disabledButton: {
-    backgroundColor: Theme.colors.lightGrey,
+    backgroundColor: Theme.colors.babyGrey,
   },
   buttonText: {
     fontFamily: fonts.PoppinsSemiBold,

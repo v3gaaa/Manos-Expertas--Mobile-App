@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   },
   noResultsSubtext: {
     marginTop: spacing,
-    fontFamily: fonts.PoppinsRegular,
+    fontFamily: fonts.PoppinsMedium,
     fontSize: Theme.size.md,
     color: Theme.colors.bamxGrey,
     textAlign: 'center',
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing / 4,
   },
   workerProfession: {
-    fontFamily: fonts.PoppinsRegular,
+    fontFamily: fonts.PoppinsMedium,
     fontSize: Theme.size.sm,
     color: Theme.colors.bamxGrey,
   },

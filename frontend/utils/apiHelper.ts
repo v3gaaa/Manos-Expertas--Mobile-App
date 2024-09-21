@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'http://10.0.0.17:5000/api';  // En vez de poner [10.0.0.17] metanse la ip de su compu con ipconfig y usen esa.
 
 export interface IUser{
   name: string;

@@ -12,6 +12,7 @@ export default function CalendarAvailability() {
   const navigation = useNavigation();
   const { workerId } = route.params as { workerId: string };
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  
 
   const handleDateSelect = (day: any) => {
     setSelectedDate(day.dateString);
@@ -39,12 +40,12 @@ export default function CalendarAvailability() {
             selectedDayTextColor: Theme.colors.white,
             todayTextColor: Theme.colors.bamxYellow,
             dayTextColor: Theme.colors.black,
-            textDisabledColor: Theme.colors.lightGrey,
+            textDisabledColor: Theme.colors.babyGrey,
             dotColor: Theme.colors.bamxRed,
             selectedDotColor: Theme.colors.white,
             arrowColor: Theme.colors.bamxYellow,
             monthTextColor: Theme.colors.bamxGreen,
-            textDayFontFamily: fonts.PoppinsRegular,
+            textDayFontFamily: fonts.PoppinsMedium,
             textMonthFontFamily: fonts.PoppinsSemiBold,
             textDayHeaderFontFamily: fonts.PoppinsMedium,
             textDayFontSize: 16,
@@ -56,7 +57,7 @@ export default function CalendarAvailability() {
       <TouchableOpacity 
         style={[styles.continueButton, !selectedDate && styles.disabledButton]} 
         disabled={!selectedDate} 
-        onPress={() => navigation.navigate('TimeAvailability', { workerId, selectedDate })}
+        onPress={() => navigation.navigate('TimeAvailability', { workerId, selectedDate: selectedDate ?? '' })}
       >
         <Text style={styles.buttonText}>Continuar</Text>
       </TouchableOpacity>
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
     ...Theme.shadows.shadow,
   },
   disabledButton: {
-    backgroundColor: Theme.colors.lightGrey,
+    backgroundColor: Theme.colors.babyGrey,
   },
   buttonText: {
     fontFamily: fonts.PoppinsSemiBold,
