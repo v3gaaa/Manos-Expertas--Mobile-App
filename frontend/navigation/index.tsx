@@ -8,6 +8,7 @@ import Welcome from "../app/welcome";
 import Home from "../app/home";
 import AdminHome from "../app/adminHome";
 import searchScreen from "../app/searchScreen";
+import WorkerDetail from "../app/WorkerDetail";
 import { RootStackParamList } from "../types";
 
 const theme = {
@@ -31,7 +32,7 @@ const Stack = createStackNavigator<RootStackParamList>();
 const RootNavigator: React.FC = () => {
   return (
     <Stack.Navigator initialRouteName="Welcome">
-      <Stack.Screen name="Welcome" component={Welcome} />
+      <Stack.Screen name="Welcome" component={Welcome} options={{ headerShown: false}} />
       <Stack.Screen name="Register" component={Register} />
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen 
@@ -39,8 +40,9 @@ const RootNavigator: React.FC = () => {
         component={Home} 
         options={{ headerShown: false }} // Disable default header for Home
       />
-      <Stack.Screen name="SearchScreen" component={searchScreen} />
+      <Stack.Screen name="SearchScreen" component={searchScreen} options={{ headerShown: false}} />
       <Stack.Screen name="AdminHome" component={AdminHome} />
+      <Stack.Screen name="WorkerDetail" component={WorkerDetail} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 };
