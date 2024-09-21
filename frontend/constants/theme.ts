@@ -21,6 +21,7 @@ export const Theme = {
         lg: 25,
         xl: 40,
         h1: 35,
+        h2: 30,
     },
     fontsWeight: {
         medium: "500",

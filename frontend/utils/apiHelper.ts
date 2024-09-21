@@ -114,9 +114,10 @@ export async function getWorkersByProfession(profession: string) {
     return null;
   }
 }
+
 export async function getWorkersByQuery(query: string) {
   try {
-    const response = await fetch(`${API_URL}/workers/search?query=${query}`, {
+    const response = await fetch(`${API_URL}/workers/search?query=${encodeURIComponent(query)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -127,10 +128,11 @@ export async function getWorkersByQuery(query: string) {
     }
     return await response.json();
   } catch (error) {
-    console.error(error);
+    console.error('Error in getWorkersByQuery:', error);
     return null;
   }
 }
+
 
 export async function getProfessions() {
   try {
@@ -147,5 +149,23 @@ export async function getProfessions() {
   } catch (error) {
     console.error(error);
     return [];
+  }
+}
+
+export async function getWorkerById(id: string) {
+  try {
+    const response = await fetch(`${API_URL}/workers/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Error al obtener los datos del trabajador');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    return null;
   }
 }
