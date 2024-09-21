@@ -169,3 +169,26 @@ export async function getWorkerById(id: string) {
     return null;
   }
 }
+
+// Función para crear una nueva reserva
+export async function createBooking(bookingData: { worker: string; user: string; startDate: Date; endDate: Date, startHour: string, endHour: string }) {
+  try {
+    const response = await fetch(`${API_URL}/bookings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(bookingData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Error creating booking');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error in createBooking:', error);
+    return null;
+  }
+}
+
