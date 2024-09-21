@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, Image } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { getWorkersByQuery } from '../utils/apiHelper'; // Ensure this is imported correctly
+import { getWorkersByQuery } from '../utils/apiHelper';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
 import { Theme } from '../constants/theme';
@@ -10,16 +10,23 @@ const SearchScreen: React.FC = () => {
   const route = useRoute();
   const { query } = route.params as { query: string };
   const [workers, setWorkers] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true); // Estado de carga
 
   useEffect(() => {
     const fetchWorkers = async () => {
       try {
-        console.log('Search query:', query); // Debugging
+        if (!query || query.trim() === '') {
+          console.error('Query is empty, no search will be performed.');
+          setLoading(false);
+          return;
+        }
+        setLoading(true); // Inicia la carga
         const workerData = await getWorkersByQuery(query);
-        console.log('Fetched workers:', workerData); // Debugging
         setWorkers(workerData || []);
       } catch (error) {
         console.error('Error fetching workers:', error);
+      } finally {
+        setLoading(false); // Finaliza la carga después de obtener los datos
       }
     };
     fetchWorkers();
@@ -36,7 +43,9 @@ const SearchScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Resultados de búsqueda</Text>
-      {workers.length === 0 ? (
+      {loading ? (
+        <ActivityIndicator size="large" color={Theme.colors.bamxYellow} /> // Indicador de carga
+      ) : workers.length === 0 ? (
         <Text style={styles.noResultsText}>No se encontraron trabajadores</Text>
       ) : (
         <FlatList

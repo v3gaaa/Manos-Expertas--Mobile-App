@@ -1,3 +1,4 @@
+// Home.tsx
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, Image, FlatList, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -7,7 +8,7 @@ import { getWorkersByProfession, getProfessions } from '../utils/apiHelper';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
 import SearchBar from '../components/SearchBar';
-import WorkerCard from '../components/WorkerCard'; // Import the WorkerCard component
+import WorkerCard from '../components/WorkerCard';
 
 const Home: React.FC = () => {
   const [userToken, setUserToken] = useState<string | null>(null);
@@ -62,15 +63,20 @@ const Home: React.FC = () => {
   }, [selectedProfession]);
 
   const handleSearch = () => {
+    if (searchText.trim() === '') {
+      Alert.alert('Error', 'Por favor ingrese un término de búsqueda.');
+      return;
+    }
     navigation.navigate('SearchScreen', { query: searchText });
   };
 
   const renderWorkerCard = ({ item }: { item: any }) => (
     <WorkerCard 
+      id={item._id}
       name={item.name} 
       profession={item.profession} 
       profilePicture={item.profilePicture} 
-      rating={item.rating || 4.5} // Assuming default rating
+      rating={item.rating || 4.5} 
     />
   );
 
@@ -114,9 +120,9 @@ const Home: React.FC = () => {
         data={workers}
         renderItem={renderWorkerCard}
         keyExtractor={(item) => item._id}
-        horizontal // Enable horizontal scrolling
-        showsHorizontalScrollIndicator={false} // Hide horizontal scrollbar
-        contentContainerStyle={styles.workerGrid} // Ensure the container is styled correctly
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.workerGrid}
       />
     </ScrollView>
   );

@@ -8,6 +8,7 @@ import Welcome from "../app/welcome";
 import Home from "../app/home";
 import AdminHome from "../app/adminHome";
 import searchScreen from "../app/searchScreen";
+import WorkerDetail from "../app/WorkerDetail";
 import { RootStackParamList } from "../types";
 
 const theme = {
@@ -41,6 +42,7 @@ const RootNavigator: React.FC = () => {
       />
       <Stack.Screen name="SearchScreen" component={searchScreen} />
       <Stack.Screen name="AdminHome" component={AdminHome} />
+      <Stack.Screen name="WorkerDetail" component={WorkerDetail} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 };

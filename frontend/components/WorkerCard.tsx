@@ -1,40 +1,40 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { Theme } from '../constants/theme';
 import fonts from '../constants/fonts';
 import spacing from '../constants/spacing';
 
 interface WorkerCardProps {
+  id: string; // Añade la propiedad id
   name: string;
   profession: string;
   profilePicture: string;
   rating: number;
 }
 
-const WorkerCard: React.FC<WorkerCardProps> = ({ name, profession, profilePicture, rating }) => {
-  return (
-    <View style={styles.cardContainer}>
-      {/* Profile Image */}
-      <Image source={{ uri: profilePicture }} style={styles.profileImage} />
+const WorkerCard: React.FC<WorkerCardProps> = ({ id, name, profession, profilePicture, rating }) => {
+  const navigation = useNavigation();
 
-      {/* Details Section */}
+  const handlePress = () => {
+    navigation.navigate('WorkerDetail', { workerId: id }); // Navega a la pantalla WorkerDetail
+  };
+
+  return (
+    <TouchableOpacity onPress={handlePress} style={styles.cardContainer}>
+      <Image source={{ uri: profilePicture }} style={styles.profileImage} />
       <View style={styles.detailSection}>
         <View style={styles.textRatingContainer}>
-          {/* Name */}
           <Text style={styles.workerName}>{name}</Text>
-
-          {/* Rating */}
           <View style={styles.ratingContainer}>
             <AntDesign name="star" size={14} color="#FFD33C" />
             <Text style={styles.ratingText}>{rating}</Text>
           </View>
         </View>
-
-        {/* Profession */}
         <Text style={styles.professionText}>{profession}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
