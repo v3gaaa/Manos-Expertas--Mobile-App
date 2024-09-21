@@ -9,6 +9,9 @@ import Home from "../app/home";
 import AdminHome from "../app/adminHome";
 import searchScreen from "../app/searchScreen";
 import WorkerDetail from "../app/WorkerDetail";
+import CalendarAvailability from "../app/CalendarAvailability";
+import TimeAvailability from "../app/TimeAvailability";
+import BookingSuccess from "../app/BookingSuccess";
 import { RootStackParamList } from "../types";
 
 const theme = {
@@ -43,6 +46,9 @@ const RootNavigator: React.FC = () => {
       <Stack.Screen name="SearchScreen" component={searchScreen} options={{ headerShown: false}} />
       <Stack.Screen name="AdminHome" component={AdminHome} />
       <Stack.Screen name="WorkerDetail" component={WorkerDetail} options={{ headerShown: false }} />
+      <Stack.Screen name="CalendarAvailability" component={CalendarAvailability} options={{ headerShown: false }} />
+      <Stack.Screen name="TimeAvailability" component={TimeAvailability} options={{ headerShown: false }} />
+      <Stack.Screen name="BookingSuccess" component={BookingSuccess} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 };

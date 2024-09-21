@@ -8,7 +8,7 @@ import { Theme } from '../constants/theme';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
 
-export default function Component() {
+export default function WorkerDetail() {
   const route = useRoute();
   const navigation = useNavigation();
   const { workerId } = route.params as { workerId: string };
@@ -47,26 +47,19 @@ export default function Component() {
         </TouchableOpacity>
         <Image source={{ uri: workerData.profilePicture }} style={styles.image} />
         <Text style={styles.profession}>{workerData.profession}</Text>
+        <View style={styles.ratingContainer}>
+          <Feather name="star" size={14} color="#FFD33C" />
+          <Text style={styles.ratingText}>5.0 (332 reviews)</Text>
+        </View>
+        <Text style={styles.description}>{workerData.description}</Text>
       </View>
-      
-      <View style={styles.content}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Descripción</Text>
-          <Text style={styles.description}>{workerData.description}</Text>
-        </View>
-        
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Contacto</Text>
-          <Text style={styles.contact}>{workerData.phoneNumber}</Text>
-        </View>
-        
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Dirección</Text>
-          <Text style={styles.address}>
-            {`${workerData.address.street}, ${workerData.address.city}, ${workerData.address.state}, ${workerData.address.zipCode}`}
-          </Text>
-        </View>
-      </View>
+
+      <TouchableOpacity 
+        style={styles.calendarButton} 
+        onPress={() => navigation.navigate('CalendarAvailability', { workerId: workerData._id })}
+      >
+        <Feather name="calendar" size={24} color={Theme.colors.green} />
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -92,8 +85,6 @@ const styles = StyleSheet.create({
     paddingTop: spacing * 6,
     paddingBottom: spacing * 3,
     paddingHorizontal: spacing * 2,
-    borderBottomLeftRadius: spacing * 2,
-    borderBottomRightRadius: spacing * 2,
     alignItems: 'center',
   },
   backButton: {
@@ -121,32 +112,30 @@ const styles = StyleSheet.create({
     fontFamily: fonts.PoppinsMedium,
     color: Theme.colors.black,
   },
-  content: {
-    padding: spacing * 2,
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing,
   },
-  section: {
-    marginBottom: spacing * 2,
-  },
-  sectionTitle: {
-    fontSize: Theme.size.lg,
-    fontFamily: fonts.PoppinsSemiBold,
-    color: Theme.colors.black,
-    marginBottom: spacing,
+  ratingText: {
+    marginLeft: 4,
+    fontSize: Theme.size.sm,
+    fontFamily: fonts.PoppinsMedium,
+    color: '#101010',
   },
   description: {
     fontSize: Theme.size.sm,
     fontFamily: fonts.PoppinsRegular,
     color: Theme.colors.black,
     lineHeight: 22,
+    marginTop: spacing,
+    textAlign: 'center',
   },
-  contact: {
-    fontSize: Theme.size.sm,
-    fontFamily: fonts.PoppinsRegular,
-    color: Theme.colors.black,
-  },
-  address: {
-    fontSize: Theme.size.sm,
-    fontFamily: fonts.PoppinsRegular,
-    color: Theme.colors.black,
+  calendarButton: {
+    alignSelf: 'center',
+    marginTop: spacing * 2,
+    padding: spacing,
+    borderRadius: 50,
+    backgroundColor: Theme.colors.lightGreen,
   },
 });

@@ -15,6 +15,7 @@ export interface IUser{
   }
   
   export interface IWorker {
+    _id: string;
     name: string;
     profession: string;
     phoneNumber: string;

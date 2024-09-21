@@ -3,6 +3,7 @@ export const Theme = {
         bgColor: '#F5F5F5',
         white: '#FFFFFF',
         black: '#000000',
+        green: '#14A436',
         grey: '#C0C0C0',
         almostWhite: '#E5E5E5',
         babyGrey: '#707070',

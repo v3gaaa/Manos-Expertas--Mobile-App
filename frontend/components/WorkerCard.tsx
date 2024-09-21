@@ -18,7 +18,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({ id, name, profession, profilePi
   const navigation = useNavigation();
 
   const handlePress = () => {
-    navigation.navigate('WorkerDetail', { workerId: id }); // Navega a la pantalla WorkerDetail
+    navigation.navigate('WorkerDetail', { workerId: id });
   };
 
   return (

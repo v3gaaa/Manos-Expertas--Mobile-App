@@ -16,6 +16,9 @@ export type RootStackParamList = {
   AdminHome: undefined;
   SearchScreen: { query: string };
   WorkerDetail: { workerId: string };
+  CalendarAvailability: { workerId: string };
+  TimeAvailability: { workerId: string; selectedDate: string };
+  BookingSuccess: { workerId: string; selectedDate: string; selectedTime: string };
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =
