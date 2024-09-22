@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { SafeAreaView, StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Theme } from '../constants/theme';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
@@ -10,6 +10,9 @@ import { useNavigation } from '@react-navigation/native';
 import AppTextInput from '../components/appTextInput';
 import { signUp } from '../utils/apiHelper';
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,50}$/;
+
 const Register: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,19 +22,30 @@ const Register: React.FC = () => {
   const navigation = useNavigation();
 
   const handleRegister = async () => {
+    if (!emailRegex.test(email)) {
+      Alert.alert('Error', 'Por favor ingresa un correo válido.');
+      return;
+    }
+
+    if (!passwordRegex.test(password)) {
+      Alert.alert(
+        'Error', 
+        'La contraseña debe tener al menos 8 caracteres, incluir una letra, un número y un carácter especial, y no exceder 50 caracteres.'
+      );
+      return;
+    }
+
     try {
-      // Generar un "salt" aleatorio para la contraseña
       const salt = CryptoJS.lib.WordArray.random(16).toString();
       const hashedPassword = CryptoJS.SHA512(password + salt).toString();
 
-      // Crear objeto del usuario para enviar al backend
       const newUser = {
         name,
         lastName,
         email,
         password: hashedPassword,
         phoneNumber: phone,
-        profilePicture: '',  // Puedes agregar lógica para subir imágenes aquí si lo necesitas
+        profilePicture: '',
         address: {
           street: '',
           city: '',
@@ -47,7 +61,7 @@ const Register: React.FC = () => {
       if (response && response.token) {
         await AsyncStorage.setItem('authToken', response.token);
         Alert.alert('Éxito', 'Usuario registrado exitosamente');
-        navigation.navigate('Home'); // Navega a la pantalla de inicio
+        navigation.navigate('Home');
       } else {
         Alert.alert('Error', 'Error al registrarse, por favor intenta nuevamente');
       }
@@ -58,61 +72,67 @@ const Register: React.FC = () => {
   };
 
   return (
-    <SafeAreaView>
-      <ScrollView>
-        <View style={{ padding: spacing * 2 }}>
-          <View style={{ alignItems: 'center' }}>
-            <Text style={[styles.mainTitle, { margin: spacing }]}>Crea una cuenta</Text>
-            <Text style={styles.subTitle}>Ingresa y explora todos los servicios que tenemos para ti</Text>
+    <SafeAreaView style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+      >
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+          <View style={{ padding: spacing * 2 }}>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={[styles.mainTitle, { margin: spacing }]}>Crea una cuenta</Text>
+              <Text style={styles.subTitle}>Ingresa y explora todos los servicios que tenemos para ti</Text>
+            </View>
+            <View style={{ marginVertical: spacing * 2 }}>
+              <AppTextInput
+                placeholder="Email"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+              <AppTextInput
+                placeholder="Nombre"
+                value={name}
+                onChangeText={setName}
+              />
+              <AppTextInput
+                placeholder="Apellido"
+                value={lastName}
+                onChangeText={setLastName}
+              />
+              <AppTextInput
+                placeholder="Teléfono"
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+              />
+              <AppTextInput
+                placeholder="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+              />
+            </View>
+            <TouchableOpacity onPress={handleRegister} style={styles.btn}>
+              <Text style={styles.btnText}>Regístrate</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')} style={{ padding: spacing }}>
+              <Text style={{
+                fontFamily: fonts.PoppinsSemiBold,
+                fontWeight: '700',
+                color: Theme.colors.bamxGrey,
+                textAlign: 'center',
+                fontSize: Theme.size.sm,
+                marginTop: spacing - 5,
+              }}>
+                Ya tengo una cuenta
+              </Text>
+            </TouchableOpacity>
           </View>
-          <View style={{ marginVertical: spacing * 2 }}>
-            <AppTextInput
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            <AppTextInput
-              placeholder="Nombre"
-              value={name}
-              onChangeText={setName}
-            />
-            <AppTextInput
-              placeholder="Apellido"
-              value={lastName}
-              onChangeText={setLastName}
-            />
-            <AppTextInput
-              placeholder="Teléfono"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-            />
-            <AppTextInput
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
-          </View>
-          <TouchableOpacity onPress={handleRegister} style={styles.btn}>
-            <Text style={styles.btnText}>Regístrate</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Login')} style={{ padding: spacing }}>
-            <Text style={{
-              fontFamily: fonts.PoppinsSemiBold,
-              fontWeight: '700',
-              color: Theme.colors.bamxGrey,
-              textAlign: 'center',
-              fontSize: Theme.size.sm,
-              marginTop: spacing - 5,
-            }}>
-              Ya tengo una cuenta
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
