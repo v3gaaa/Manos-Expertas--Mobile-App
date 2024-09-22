@@ -39,7 +39,7 @@ export default function SearchScreen() {
       style={styles.workerCard}
       onPress={() => navigation.navigate('WorkerDetail', { workerId: item._id })}
     >
-      <Image source={{ uri: item.profilePicture }} style={styles.workerImage} />
+      <Image source={{ uri: item.profilePicture || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.basiclines.com%2Fwp-content%2Fuploads%2F2019%2F01%2Fblank-user.jpg&f=1&nofb=1&ipt=ca5e2c2b13f2cf4fb7ec7284dd85147bf639caab21a1a44c81aa07b30eab197e&ipo=images'}} style={styles.workerImage} />
       <View style={styles.workerInfo}>
         <Text style={styles.workerName}>{item.name} {item.lastName}</Text>
         <Text style={styles.workerProfession}>{item.profession}</Text>

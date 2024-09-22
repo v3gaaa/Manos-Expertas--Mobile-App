@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.colors.bamxRed,
     borderRadius: spacing,
     marginTop: spacing * 3,
-    ...Theme.shadows.shadow,
+    ...Theme.shadows,
   },
   btnText: {
     fontFamily: fonts.PoppinsSemiBold,

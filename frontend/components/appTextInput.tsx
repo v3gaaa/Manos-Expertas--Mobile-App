@@ -32,7 +32,7 @@ const AppTextInput: React.FC<TextInputProps> = ({ value, onChangeText, secureTex
                 focused && {
                     borderWidth: 2, 
                     borderColor: Theme.colors.bamxYellow, 
-                    ...Theme.shadows.shadow
+                    ...Theme.shadows
                 }
             ]}
             {...otherProps}

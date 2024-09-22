@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     borderRadius: spacing,
     padding: spacing * 2,
     width: '100%',
-    ...Theme.shadows.shadow,
+    ...Theme.shadows,
   },
   detailRow: {
     flexDirection: 'row',
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     borderRadius: spacing,
     backgroundColor: Theme.colors.bamxGreen,
     alignItems: 'center',
-    ...Theme.shadows.shadow,
+    ...Theme.shadows,
   },
   buttonText: {
     fontFamily: fonts.PoppinsSemiBold,

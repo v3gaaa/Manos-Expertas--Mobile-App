@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing * 1.5,
     alignItems: 'center',
     justifyContent: 'center',
-    ...Theme.shadows.shadow,
+    ...Theme.shadows,
   },
   loginButton: {
     backgroundColor: Theme.colors.bamxYellow,

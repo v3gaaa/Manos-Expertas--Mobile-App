@@ -23,7 +23,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({ id, name, profession, profilePi
 
   return (
     <TouchableOpacity onPress={handlePress} style={styles.cardContainer}>
-      <Image source={{ uri: profilePicture }} style={styles.profileImage} />
+      <Image source={{ uri: profilePicture || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.basiclines.com%2Fwp-content%2Fuploads%2F2019%2F01%2Fblank-user.jpg&f=1&nofb=1&ipt=ca5e2c2b13f2cf4fb7ec7284dd85147bf639caab21a1a44c81aa07b30eab197e&ipo=images'}} style={styles.profileImage} />
       <View style={styles.detailSection}>
         <View style={styles.textRatingContainer}>
           <Text style={styles.workerName}>{name}</Text>
