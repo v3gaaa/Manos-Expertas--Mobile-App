@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing,
     flex: 1,
     marginHorizontal: spacing / 2,
-    ...Theme.shadows.shadow,
+    ...Theme.shadows,
   },
   selectedTimeButton: {
     backgroundColor: Theme.colors.bamxGreen,
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     borderRadius: spacing,
     backgroundColor: Theme.colors.bamxGreen,
     alignItems: 'center',
-    ...Theme.shadows.shadow,
+    ...Theme.shadows,
   },
   disabledButton: {
     backgroundColor: Theme.colors.babyGrey,

@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.colors.white,
     margin: spacing * 2,
     borderRadius: spacing,
-    ...Theme.shadows.shadow,
+    ...Theme.shadows,
   },
   continueButton: {
     margin: spacing * 2,
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     borderRadius: spacing,
     backgroundColor: Theme.colors.bamxGreen,
     alignItems: 'center',
-    ...Theme.shadows.shadow,
+    ...Theme.shadows,
   },
   disabledButton: {
     backgroundColor: Theme.colors.babyGrey,

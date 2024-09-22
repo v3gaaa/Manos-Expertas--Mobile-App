@@ -1,4 +1,3 @@
-// Home.tsx
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, Image, FlatList, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -9,6 +8,7 @@ import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
 import SearchBar from '../components/SearchBar';
 import WorkerCard from '../components/WorkerCard';
+import CitasCard from '../components/CitasCard';
 
 const Home: React.FC = () => {
   const [userToken, setUserToken] = useState<string | null>(null);
@@ -16,6 +16,7 @@ const Home: React.FC = () => {
   const [selectedProfession, setSelectedProfession] = useState<string>('Todo');
   const [professions, setProfessions] = useState<string[]>([]);
   const [workers, setWorkers] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
   const [searchText, setSearchText] = useState('');
   const navigation = useNavigation();
 
@@ -80,19 +81,46 @@ const Home: React.FC = () => {
     />
   );
 
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        // Simulate fetching bookings; replace with actual API call
+        const bookingData = [
+          { id: '1', name: 'Mateo', lastName: 'Boaz', profession: 'Pintor', date: '7 Oct 2024', rating: 4.0, reviews: 51 },
+          { id: '2', name: 'Johan', lastName: 'Günter', profession: 'Carpintero', date: '23 Ago 2024', rating: 3.9, reviews: 12 },
+          // Add more sample bookings here
+        ];
+        setBookings(bookingData);
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+      }
+    };
+    fetchBookings();
+  }, []);
+
+  const renderBookingCard = ({ item }: { item: any }) => (
+    <CitasCard 
+      name={item.name}
+      lastName={item.lastName}
+      profession={item.profession}
+      date={item.date}
+      reviews={item.reviews}
+      rating={item.rating}
+    />
+  );
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         {userData && (
           <View style={styles.profileContainer}>
-            <Image source={{ uri: userData.profilePicture }} style={styles.profileImage} />
+            <Image source={{ uri: userData.profilePicture || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.basiclines.com%2Fwp-content%2Fuploads%2F2019%2F01%2Fblank-user.jpg&f=1&nofb=1&ipt=ca5e2c2b13f2cf4fb7ec7284dd85147bf639caab21a1a44c81aa07b30eab197e&ipo=images' }} style={styles.profileImage} />
             <View style={styles.headerText}>
               <Text style={styles.greeting}>Hola, bienvenido 🎉</Text>
               <Text style={styles.userName}>{userData.name} {userData.lastName}</Text>
             </View>
           </View>
         )}
-        {/* Centered Search Bar */}
         <SearchBar searchText={searchText} setSearchText={setSearchText} handleSearch={handleSearch} />
       </View>
 
@@ -115,15 +143,32 @@ const Home: React.FC = () => {
         />
       </View>
 
-      {/* Worker Cards Carousel */}
       <FlatList
         data={workers}
         renderItem={renderWorkerCard}
         keyExtractor={(item) => item._id}
         horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.workerGrid}
+        showsHorizontalScrollIndicator={true}
+        contentContainerStyle={styles.workerGrid} // Removed flexWrap
       />
+
+      {/* Citas Agendadas Section */}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Citas agendadas</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('allBookedAppointments')}>
+          <Text style={styles.viewAllButton}>Ver Todo</Text>
+        </TouchableOpacity>
+      </View>
+
+      <FlatList
+        data={bookings.slice(0, 4)} // Only show the 4 closest appointments
+        renderItem={renderBookingCard}
+        keyExtractor={(item) => item.id}
+        numColumns={2} // Display 2 columns
+        columnWrapperStyle={styles.row} // Ensure rows are displayed properly
+        contentContainerStyle={styles.bookingGrid}
+      />
+
     </ScrollView>
   );
 };
@@ -136,14 +181,7 @@ const styles = StyleSheet.create({
   header: {
     paddingVertical: spacing * 2,
     paddingHorizontal: spacing * 2,
-    backgroundColor: Theme.colors.bamxYellow, // Shared background color
-    borderBottomLeftRadius: spacing * 2,
-    borderBottomRightRadius: spacing * 2,
-  },
-  profileContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing * 2,
+    backgroundColor: Theme.colors.bamxYellow,
   },
   profileImage: {
     width: 50,
@@ -161,11 +199,10 @@ const styles = StyleSheet.create({
     color: Theme.colors.black,
   },
   userName: {
-    fontSize: Theme.size.xl,
+    fontSize: Theme.size.l,
     fontFamily: fonts.PoppinsSemiBold,
     color: Theme.colors.black,
   },
-  // Center the search bar
   searchBarContainer: {
     marginTop: spacing * 2,
     marginBottom: spacing * 2,
@@ -199,8 +236,6 @@ const styles = StyleSheet.create({
   },
   workerGrid: {
     paddingVertical: spacing,
-    flexDirection: 'row',
-    flexWrap: 'wrap', // Ensure cards wrap into rows
     paddingLeft: spacing,
     paddingRight: spacing,
   },
@@ -210,8 +245,39 @@ const styles = StyleSheet.create({
     borderRadius: spacing,
     marginBottom: spacing * 2,
     marginRight: spacing,
-    width: 150, // Adjust card width if necessary
-    height: 200, // Adjust card height if necessary
+    width: 150,
+    height: 200,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing * 2,
+    marginTop: spacing * 2,
+  },
+  sectionTitle: {
+    fontSize: Theme.size.lg,
+    fontFamily: fonts.PoppinsSemiBold,
+    color: Theme.colors.bamxGrey,
+    marginBottom: spacing,
+  },
+  viewAllButton: {
+    fontSize: Theme.size.sm,
+    color: "blue",
+    fontFamily: fonts.PoppinsMedium,
+    marginTop: 6,
+  },
+  bookingGrid: {
+    paddingHorizontal: spacing * 2,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: spacing * 2,
+  },
+  profileContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing * 2,
   },
 });
 

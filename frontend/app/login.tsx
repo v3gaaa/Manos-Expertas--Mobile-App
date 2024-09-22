@@ -8,6 +8,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import AppTextInput from '../components/appTextInput';
 import { logIn, getUserByEmail } from '../utils/apiHelper';
+// Regex for email and password
+//const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,50}$/;
+
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -15,6 +19,18 @@ const Login: React.FC = () => {
   const navigation = useNavigation();
 
   const handleLogIn = async () => {
+    //if (!emailRegex.test(email)) {
+      //Alert.alert('Error', 'Por favor ingresa un correo válido.');
+      //return;
+    //}
+
+    //if (!passwordRegex.test(password)) {
+      //Alert.alert(
+        //'Error', 
+        //'La contraseña debe tener al menos 8 caracteres, incluir una letra, un número y un carácter especial, y no exceder 50 caracteres.'
+      //);
+      //return;
+    //}
     try {
       const response = await logIn(email, password);
 
@@ -63,6 +79,7 @@ const Login: React.FC = () => {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            maxLength={50} // Limits password length to 50 characters
           />
         </View>
         <View>
@@ -117,7 +134,7 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.colors.bamxRed,
     borderRadius: spacing,
     marginTop: spacing * 3,
-    ...Theme.shadows.shadow,
+    ...Theme.shadows,
   },
   btnText: {
     fontFamily: fonts.PoppinsSemiBold,

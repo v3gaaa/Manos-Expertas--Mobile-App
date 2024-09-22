@@ -12,6 +12,7 @@ import WorkerDetail from "../app/WorkerDetail";
 import CalendarAvailability from "../app/CalendarAvailability";
 import TimeAvailability from "../app/TimeAvailability";
 import BookingSuccess from "../app/BookingSuccess";
+import allBookedAppointments from "../app/allBookedAppointments";
 import { RootStackParamList } from "../types";
 
 const theme = {
@@ -49,6 +50,7 @@ const RootNavigator: React.FC = () => {
       <Stack.Screen name="CalendarAvailability" component={CalendarAvailability} options={{ headerShown: false }} />
       <Stack.Screen name="TimeAvailability" component={TimeAvailability} options={{ headerShown: false }} />
       <Stack.Screen name="BookingSuccess" component={BookingSuccess} options={{ headerShown: false }} />
+      <Stack.Screen name="allBookedAppointments" component={allBookedAppointments} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 };

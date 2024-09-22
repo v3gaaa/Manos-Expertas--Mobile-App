@@ -1,5 +1,12 @@
-const API_URL = 'http://10.0.0.17:5000/api';  // En vez de poner [10.0.0.17] metanse la ip de su compu con ipconfig y usen esa.
+//const API_URL = 'http://10.0.0.12:5000/api';  // En vez de poner [10.0.0.17] metanse la ip de su compu con ipconfig y usen esa.
+//const API_URL = 'https://f381-189-163-123-144.ngrok-free.app/api';
+import { Platform } from 'react-native';
 
+// Define API_URL based on the platform
+const API_URL = Platform.OS === 'web' 
+  ? 'http://localhost:5000/api'  // Localhost for web
+  : 'https://f381-189-163-123-144.ngrok-free.app/api';  // ngrok URL for other platforms
+  
 export interface IUser{
   name: string;
   lastName: string;
@@ -34,7 +41,7 @@ export async function logIn(email: string, password: string) {
     
     return { token, user };
   } catch (error) {
-    console.error(error);
+    console.error('Error in logIn:', error);
     return null;
   }
 }
@@ -54,7 +61,7 @@ export async function signUp(user: IUser) {
     }
     return await response.json();
   } catch (error) {
-    console.error(error);
+    console.error('Error in signUp:', error);
     return null;
   }
 }
@@ -73,7 +80,7 @@ export async function getUsers() {
     }
     return await response.json();
   } catch (error) {
-    console.error(error);
+    console.error('Error in getUsers:', error);
     return null;
   }
 }
@@ -92,7 +99,7 @@ export async function getUserByEmail(email: string) {
     }
     return await response.json();
   } catch (error) {
-    console.error(error);
+    console.error('Error in getUserByEmail:', error);
     return null;
   }
 }
@@ -110,7 +117,7 @@ export async function getWorkersByProfession(profession: string) {
     }
     return await response.json();
   } catch (error) {
-    console.error(error);
+    console.error('Error in getWorkersByProfession:', error);
     return null;
   }
 }
@@ -133,7 +140,6 @@ export async function getWorkersByQuery(query: string) {
   }
 }
 
-
 export async function getProfessions() {
   try {
     const response = await fetch(`${API_URL}/workers/professions`, {
@@ -147,7 +153,7 @@ export async function getProfessions() {
     }
     return await response.json();
   } catch (error) {
-    console.error(error);
+    console.error('Error in getProfessions:', error);
     return [];
   }
 }
@@ -165,7 +171,7 @@ export async function getWorkerById(id: string) {
     }
     return await response.json();
   } catch (error) {
-    console.error(error);
+    console.error('Error in getWorkerById:', error);
     return null;
   }
 }
@@ -191,4 +197,3 @@ export async function createBooking(bookingData: { worker: string; user: string;
     return null;
   }
 }
-

@@ -45,7 +45,7 @@ export default function WorkerDetail() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Feather name="arrow-left" size={24} color={Theme.colors.black} />
         </TouchableOpacity>
-        <Image source={{ uri: workerData.profilePicture }} style={styles.image} />
+        <Image source={{ uri: workerData.profilePicture || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.basiclines.com%2Fwp-content%2Fuploads%2F2019%2F01%2Fblank-user.jpg&f=1&nofb=1&ipt=ca5e2c2b13f2cf4fb7ec7284dd85147bf639caab21a1a44c81aa07b30eab197e&ipo=images' }} style={styles.image} />
         <Text style={styles.profession}>{workerData.profession}</Text>
         <View style={styles.ratingContainer}>
           <Feather name="star" size={14} color="#FFD33C" />
