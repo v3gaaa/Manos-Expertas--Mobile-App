@@ -9,6 +9,7 @@ import fonts from '../constants/fonts';
 import SearchBar from '../components/SearchBar';
 import WorkerCard from '../components/WorkerCard';
 import CitasCard from '../components/CitasCard';
+import Footer from '../components/footer';
 
 const Home: React.FC = () => {
   const [userToken, setUserToken] = useState<string | null>(null);
@@ -110,66 +111,68 @@ const Home: React.FC = () => {
   );
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        {userData && (
-          <View style={styles.profileContainer}>
-            <Image source={{ uri: userData.profilePicture || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.basiclines.com%2Fwp-content%2Fuploads%2F2019%2F01%2Fblank-user.jpg&f=1&nofb=1&ipt=ca5e2c2b13f2cf4fb7ec7284dd85147bf639caab21a1a44c81aa07b30eab197e&ipo=images' }} style={styles.profileImage} />
-            <View style={styles.headerText}>
-              <Text style={styles.greeting}>Hola, bienvenido 🎉</Text>
-              <Text style={styles.userName}>{userData.name} {userData.lastName}</Text>
+    <View style={styles.container}>
+      <ScrollView style={styles.contentContainer}>
+        <View style={styles.header}>
+          {userData && (
+            <View style={styles.profileContainer}>
+              <Image source={{ uri: userData.profilePicture || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.basiclines.com%2Fwp-content%2Fuploads%2F2019%2F01%2Fblank-user.jpg&f=1&nofb=1&ipt=ca5e2c2b13f2cf4fb7ec7284dd85147bf639caab21a1a44c81aa07b30eab197e&ipo=images' }} style={styles.profileImage} />
+              <View style={styles.headerText}>
+                <Text style={styles.greeting}>Hola, bienvenido 🎉</Text>
+                <Text style={styles.userName}>{userData.name} {userData.lastName}</Text>
+              </View>
             </View>
-          </View>
-        )}
-        <SearchBar searchText={searchText} setSearchText={setSearchText} handleSearch={handleSearch} />
-      </View>
-
-      <View style={styles.professionCarouselContainer}>
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={professions}
-          keyExtractor={(item) => item}
-          renderItem={({ item: profession }) => (
-            <TouchableOpacity
-              style={[styles.professionButton, selectedProfession === profession && styles.professionButtonSelected]}
-              onPress={() => setSelectedProfession(profession)}
-            >
-              <Text style={[styles.professionButtonText, selectedProfession === profession && styles.professionButtonTextSelected]}>
-                {profession}
-              </Text>
-            </TouchableOpacity>
           )}
+          <SearchBar searchText={searchText} setSearchText={setSearchText} handleSearch={handleSearch} />
+        </View>
+
+        <View style={styles.professionCarouselContainer}>
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={professions}
+            keyExtractor={(item) => item}
+            renderItem={({ item: profession }) => (
+              <TouchableOpacity
+                style={[styles.professionButton, selectedProfession === profession && styles.professionButtonSelected]}
+                onPress={() => setSelectedProfession(profession)}
+              >
+                <Text style={[styles.professionButtonText, selectedProfession === profession && styles.professionButtonTextSelected]}>
+                  {profession}
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+
+        <FlatList
+          data={workers}
+          renderItem={renderWorkerCard}
+          keyExtractor={(item) => item._id}
+          horizontal
+          showsHorizontalScrollIndicator={true}
+          contentContainerStyle={styles.workerGrid} // Removed flexWrap
         />
-      </View>
 
-      <FlatList
-        data={workers}
-        renderItem={renderWorkerCard}
-        keyExtractor={(item) => item._id}
-        horizontal
-        showsHorizontalScrollIndicator={true}
-        contentContainerStyle={styles.workerGrid} // Removed flexWrap
-      />
+        {/* Citas Agendadas Section */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Citas agendadas</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('allBookedAppointments')}>
+            <Text style={styles.viewAllButton}>Ver Todo</Text>
+          </TouchableOpacity>
+        </View>
 
-      {/* Citas Agendadas Section */}
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Citas agendadas</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('allBookedAppointments')}>
-          <Text style={styles.viewAllButton}>Ver Todo</Text>
-        </TouchableOpacity>
-      </View>
-
-      <FlatList
-        data={bookings.slice(0, 4)} // Only show the 4 closest appointments
-        renderItem={renderBookingCard}
-        keyExtractor={(item) => item.id}
-        numColumns={2} // Display 2 columns
-        columnWrapperStyle={styles.row} // Ensure rows are displayed properly
-        contentContainerStyle={styles.bookingGrid}
-      />
-
-    </ScrollView>
+        <FlatList
+          data={bookings.slice(0, 4)} // Only show the 4 closest appointments
+          renderItem={renderBookingCard}
+          keyExtractor={(item) => item.id}
+          numColumns={2} // Display 2 columns
+          columnWrapperStyle={styles.row} // Ensure rows are displayed properly
+          contentContainerStyle={styles.bookingGrid}
+        />
+      </ScrollView>
+      <Footer />
+    </View>
   );
 };
 
@@ -177,6 +180,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Theme.colors.bgColor,
+  },
+  contentContainer: {
+    flex: 1,
   },
   header: {
     paddingVertical: spacing * 2,
