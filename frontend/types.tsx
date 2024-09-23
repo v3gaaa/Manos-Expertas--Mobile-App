@@ -13,14 +13,17 @@ export type RootStackParamList = {
   Register: undefined;
   Login: undefined;
   Home: undefined;
-  AdminHome: undefined;
-  AdminSearchScreen: { query: string };
   SearchScreen: { query: string };
   WorkerDetail: { workerId: string };
   CalendarAvailability: { workerId: string };
   TimeAvailability: { workerId: string; selectedDate: string };
   BookingSuccess: { workerId: string; selectedDate: string; selectedTime: string };
   allBookedAppointments: undefined;
+  AdminHome: undefined;
+  AdminSearchScreen: { query: string };
+  AddWorker: undefined;
+  EditWorker: undefined;
+  RegisterAdmin: undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =

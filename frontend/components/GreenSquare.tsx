@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { icons } from '../constants/icons';
 import fonts from '../constants/fonts';
 
@@ -10,9 +10,10 @@ type GreenSquareProps = {
   title: string;
   utility: string;
   iconName: IconNames;
+  onPress: () => void;
 };
 
-const GreenSquare = ({ title, utility, iconName }: GreenSquareProps) => { 
+const GreenSquare = ({ title, utility, iconName, onPress }: GreenSquareProps) => { 
     const IconComponent = icons[iconName];
     return (
         <View>
@@ -22,7 +23,7 @@ const GreenSquare = ({ title, utility, iconName }: GreenSquareProps) => {
             </View>
             
             {/* Card Section */}
-            <View style={styles.card}>
+            <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={styles.card}>
                 <View style={styles.toolContainer}>
                     {IconComponent && IconComponent(20, 'white')}
                 </View>
@@ -38,7 +39,7 @@ const GreenSquare = ({ title, utility, iconName }: GreenSquareProps) => {
                 <View style={styles.textContainer}>
                     <Text style={styles.text}>{`${utility}`}</Text>
                 </View>
-            </View>
+            </TouchableOpacity>
         </View>
     );
 };

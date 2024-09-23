@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, Image, FlatList, TouchableOpacity, Alert, Scrol
 import { useNavigation } from '@react-navigation/native';
 import { Theme } from '../constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// import { getWorstWorkers } from '../utils/apiHelper';
+import { getWorstWorkers } from '../utils/apiHelper';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
 import SearchBar from '../components/SearchBar';
@@ -37,19 +37,18 @@ const AdminHome: React.FC = () => {
     loadUser();
   }, [navigation]);
 
-  {/*
   useEffect(() => {
     const fetchWorstWorkers = async () => {
       try {
-        const workerData = await getWorstWorkers('');
+        const workerData = await getWorstWorkers();
         setWorstWorkers(workerData || []);
+        console.log(workerData);
       } catch (error) {
         console.error('Error fetching worst workers:', error);
       }
     };
     fetchWorstWorkers();
   }, []);
-  */}
 
   const renderWorkerCard = ({ item }: { item: any }) => (
     <WorkerCard 
@@ -83,8 +82,7 @@ const AdminHome: React.FC = () => {
         )}
         <SearchBar searchText={searchText} setSearchText={setSearchText} handleSearch={handleSearch} />
       </View>
-
-      {/*
+ 
       <FlatList
         data={worstWorkers}
         renderItem={renderWorkerCard}
@@ -93,22 +91,27 @@ const AdminHome: React.FC = () => {
         showsHorizontalScrollIndicator={true}
         contentContainerStyle={styles.workerGrid} 
       />
-      */}
-
+      
       <View style={styles.bottomContainer}>
           <View style={styles.greenSquaresContainer}>
             <GreenSquare
               title="Agregar trabajadores"
               utility="Nuevo perfil"
               iconName="FolderOpen"
+              onPress={() => navigation.navigate('AddWorker')}
             />
             <GreenSquare
               title="Editar trabajadores"
               utility="Editar perfil"
               iconName="Settings"
+              onPress={() => navigation.navigate('EditWorker')}
             />
           </View>
       </View>
+
+      <TouchableOpacity onPress={() => navigation.navigate('RegisterAdmin')} style={styles.btn}>
+        <Text style={styles.btnText}>Añadir admin</Text>
+      </TouchableOpacity>
 
     </ScrollView>
   );
@@ -183,6 +186,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between', 
     paddingHorizontal: 20, 
   },
+  btn: {
+    padding: spacing,
+    width: '60%',
+    alignSelf: 'center',
+    backgroundColor: Theme.colors.bamxRed,
+    borderRadius: spacing,
+    marginTop: spacing,
+    ...Theme.shadows,
+  },
+  btnText: {
+    fontFamily: fonts.PoppinsMedium,
+    fontSize: 16,
+    textAlign: 'center',
+    color: Theme.colors.white,
+  }
 });
 
 export default AdminHome;

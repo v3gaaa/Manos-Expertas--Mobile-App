@@ -13,7 +13,10 @@ import WorkerDetail from "../app/WorkerDetail";
 import CalendarAvailability from "../app/CalendarAvailability";
 import TimeAvailability from "../app/TimeAvailability";
 import BookingSuccess from "../app/BookingSuccess";
+import AddWorker from "../app/addWorker";
+import EditWorker from "../app/editWorker";
 import allBookedAppointments from "../app/allBookedAppointments";
+import RegisterAdmin from "../app/registerAdmin";
 import { RootStackParamList } from "../types";
 
 const theme = {
@@ -46,13 +49,16 @@ const RootNavigator: React.FC = () => {
         options={{ headerShown: false }} // Disable default header for Home
       />
       <Stack.Screen name="SearchScreen" component={searchScreen} options={{ headerShown: false}} />
-      <Stack.Screen name="AdminHome" component={AdminHome} options={{ headerShown: false}} />
-      <Stack.Screen name="AdminSearchScreen" component={AdminSearchScreen} options={{ headerShown: false}} />
       <Stack.Screen name="WorkerDetail" component={WorkerDetail} options={{ headerShown: false }} />
       <Stack.Screen name="CalendarAvailability" component={CalendarAvailability} options={{ headerShown: false }} />
       <Stack.Screen name="TimeAvailability" component={TimeAvailability} options={{ headerShown: false }} />
       <Stack.Screen name="BookingSuccess" component={BookingSuccess} options={{ headerShown: false }} />
       <Stack.Screen name="allBookedAppointments" component={allBookedAppointments} options={{ headerShown: false }} />
+      <Stack.Screen name="AdminHome" component={AdminHome} options={{ headerShown: false}} />
+      <Stack.Screen name="AdminSearchScreen" component={AdminSearchScreen} options={{ headerShown: false}} />
+      <Stack.Screen name="AddWorker" component={AddWorker} />
+      <Stack.Screen name="EditWorker" component={EditWorker} />
+      <Stack.Screen name="RegisterAdmin" component={RegisterAdmin} />
     </Stack.Navigator>
   );
 };

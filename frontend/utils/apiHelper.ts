@@ -197,3 +197,35 @@ export async function createBooking(bookingData: { worker: string; user: string;
     return null;
   }
 }
+
+// Función para obtener a los trabajadores con peor rating
+export async function getWorstWorkers() {
+  try {
+    const response = await fetch(`${API_URL}/reviews/workers/lowest-rated`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Error fetching worst workers');
+    }
+
+    const data = await response.json();
+
+    console.log(data);
+
+    const workers = data.flatMap((worker: { averageRating: number; workerDetails: Worker[] }) =>
+      worker.workerDetails.map((details) => ({
+        ...details, // spread the worker details
+        rating: worker.averageRating, // add the average rating
+      }))
+    );
+
+    return workers;
+  } catch (error) {
+    console.error('Error in getWorstWorkers:', error);
+    return null;
+  }
+}
