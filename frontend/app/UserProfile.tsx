@@ -1,12 +1,12 @@
-// allBookedAppointments.tsx
+// UserProfile.tsx
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import Footer from '../components/footer'; // Assuming the footer is located here
 
-const AllBookedAppointments = () => {
+const UserProfile = () => {
   return (
     <View style={styles.container}>
-      <Text>All Booked Appointments</Text>
+      <Text>User Profile</Text>
       {/* Wrapping the footer within a proper View */}
       <View style={styles.footerContainer}>
         <Footer />
@@ -29,4 +29,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AllBookedAppointments;
+export default UserProfile;

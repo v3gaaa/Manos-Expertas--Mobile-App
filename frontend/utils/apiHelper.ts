@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 // Define API_URL based on the platform
 const API_URL = Platform.OS === 'web' 
   ? 'http://localhost:5000/api'  // Localhost for web
-  : 'https://f381-189-163-123-144.ngrok-free.app/api';  // ngrok URL for other platforms
+  : 'https://24e8-189-163-123-144.ngrok-free.app/api';  // ngrok URL for other platforms
   
 export interface IUser{
   name: string;

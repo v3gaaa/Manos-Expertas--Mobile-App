@@ -11,8 +11,6 @@ import { logIn, getUserByEmail } from '../utils/apiHelper';
 // Regex for email and password
 //const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 //const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,50}$/;
-
-
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

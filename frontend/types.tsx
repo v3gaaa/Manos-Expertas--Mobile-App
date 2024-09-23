@@ -20,6 +20,7 @@ export type RootStackParamList = {
   TimeAvailability: { workerId: string; selectedDate: string };
   BookingSuccess: { workerId: string; selectedDate: string; selectedTime: string };
   allBookedAppointments: undefined;
+  UserProfile: undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =

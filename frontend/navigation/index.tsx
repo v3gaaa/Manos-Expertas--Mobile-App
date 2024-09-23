@@ -13,6 +13,7 @@ import CalendarAvailability from "../app/CalendarAvailability";
 import TimeAvailability from "../app/TimeAvailability";
 import BookingSuccess from "../app/BookingSuccess";
 import allBookedAppointments from "../app/allBookedAppointments";
+import UserProfile from "../app/UserProfile";
 import { RootStackParamList } from "../types";
 
 const theme = {
@@ -42,7 +43,7 @@ const RootNavigator: React.FC = () => {
       <Stack.Screen 
         name="Home" 
         component={Home} 
-        options={{ headerShown: false }} // Disable default header for Home
+        options={{ headerShown: false, animationEnabled: false  }} // Disable default header for Home
       />
       <Stack.Screen name="SearchScreen" component={searchScreen} options={{ headerShown: false}} />
       <Stack.Screen name="AdminHome" component={AdminHome} />
@@ -50,7 +51,16 @@ const RootNavigator: React.FC = () => {
       <Stack.Screen name="CalendarAvailability" component={CalendarAvailability} options={{ headerShown: false }} />
       <Stack.Screen name="TimeAvailability" component={TimeAvailability} options={{ headerShown: false }} />
       <Stack.Screen name="BookingSuccess" component={BookingSuccess} options={{ headerShown: false }} />
-      <Stack.Screen name="allBookedAppointments" component={allBookedAppointments} options={{ headerShown: false }} />
+      <Stack.Screen 
+        name="allBookedAppointments" 
+        component={allBookedAppointments} 
+        options={{ headerShown: false, animationEnabled: false }} // Disable animation for allBookedAppointments
+      />
+      <Stack.Screen 
+        name="UserProfile" 
+        component={UserProfile} 
+        options={{ headerShown: false, animationEnabled: false }} // Disable animation for UserProfile
+      />
     </Stack.Navigator>
   );
 };
