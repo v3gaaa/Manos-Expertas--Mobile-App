@@ -24,6 +24,7 @@ export type RootStackParamList = {
   AddWorker: undefined;
   EditWorker: undefined;
   RegisterAdmin: undefined;
+  AllWorstWorkers: undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =

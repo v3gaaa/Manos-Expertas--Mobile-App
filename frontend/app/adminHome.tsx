@@ -70,6 +70,7 @@ const AdminHome: React.FC = () => {
 
   return (
     <ScrollView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         {userData && (
           <View style={styles.profileContainer}>
@@ -82,9 +83,17 @@ const AdminHome: React.FC = () => {
         )}
         <SearchBar searchText={searchText} setSearchText={setSearchText} handleSearch={handleSearch} />
       </View>
- 
+
+      {/* Worst workers section */}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Trabajadores con peor calificación</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('AllWorstWorkers')}>
+          <Text style={styles.viewAllButton}>Ver Todos</Text>
+        </TouchableOpacity>
+      </View>
+
       <FlatList
-        data={worstWorkers}
+        data={worstWorkers.slice(0, 4)}
         renderItem={renderWorkerCard}
         keyExtractor={(item) => item._id}
         horizontal
@@ -92,6 +101,7 @@ const AdminHome: React.FC = () => {
         contentContainerStyle={styles.workerGrid} 
       />
       
+      {/* Add/edit workers section */}
       <View style={styles.bottomContainer}>
           <View style={styles.greenSquaresContainer}>
             <GreenSquare
@@ -109,6 +119,7 @@ const AdminHome: React.FC = () => {
           </View>
       </View>
 
+      {/* Add admin button */}
       <TouchableOpacity onPress={() => navigation.navigate('RegisterAdmin')} style={styles.btn}>
         <Text style={styles.btnText}>Añadir admin</Text>
       </TouchableOpacity>
@@ -161,6 +172,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing * 2,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing * 2,
+    marginTop: spacing * 2,
+  },
+  viewAllButton: {
+    fontSize: Theme.size.sm,
+    color: "blue",
+    fontFamily: fonts.PoppinsMedium,
+    marginTop: 6,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontFamily: fonts.PoppinsSemiBold,
+    color: Theme.colors.bamxGrey,
+    marginBottom: spacing,
   },
   workerGrid: {
     paddingVertical: spacing,

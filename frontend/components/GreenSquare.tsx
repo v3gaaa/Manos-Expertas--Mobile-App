@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { icons } from '../constants/icons';
+import { Theme } from '../constants/theme';
 import fonts from '../constants/fonts';
 
 
@@ -52,10 +53,10 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 16,
         fontFamily: fonts.PoppinsMedium,
-
+        color: Theme.colors.bamxGrey,
     },
     card: {
-        backgroundColor: '#14A436',
+        backgroundColor: Theme.colors.bamxGreen,
         borderRadius: 12,
         width: 130,
         height: 'auto', 

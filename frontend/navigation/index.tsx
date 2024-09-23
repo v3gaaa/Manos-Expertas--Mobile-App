@@ -17,6 +17,7 @@ import AddWorker from "../app/addWorker";
 import EditWorker from "../app/editWorker";
 import allBookedAppointments from "../app/allBookedAppointments";
 import RegisterAdmin from "../app/registerAdmin";
+import AllWorstWorkers from "../app/allWorstWorkers";
 import { RootStackParamList } from "../types";
 
 const theme = {
@@ -59,6 +60,7 @@ const RootNavigator: React.FC = () => {
       <Stack.Screen name="AddWorker" component={AddWorker} />
       <Stack.Screen name="EditWorker" component={EditWorker} />
       <Stack.Screen name="RegisterAdmin" component={RegisterAdmin} />
+      <Stack.Screen name="AllWorstWorkers" component={AllWorstWorkers} />
     </Stack.Navigator>
   );
 };
