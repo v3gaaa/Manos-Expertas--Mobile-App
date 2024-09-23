@@ -7,12 +7,17 @@ import Register from "../app/register";
 import Welcome from "../app/welcome";
 import Home from "../app/home";
 import AdminHome from "../app/adminHome";
+import AdminSearchScreen from "../app/adminSearchScreen";
 import searchScreen from "../app/searchScreen";
 import WorkerDetail from "../app/WorkerDetail";
 import CalendarAvailability from "../app/CalendarAvailability";
 import TimeAvailability from "../app/TimeAvailability";
 import BookingSuccess from "../app/BookingSuccess";
+import AddWorker from "../app/addWorker";
+import EditWorker from "../app/editWorker";
 import allBookedAppointments from "../app/allBookedAppointments";
+import RegisterAdmin from "../app/registerAdmin";
+import AllWorstWorkers from "../app/allWorstWorkers";
 import UserProfile from "../app/UserProfile";
 import { RootStackParamList } from "../types";
 
@@ -46,11 +51,16 @@ const RootNavigator: React.FC = () => {
         options={{ headerShown: false, animationEnabled: false  }} // Disable default header for Home
       />
       <Stack.Screen name="SearchScreen" component={searchScreen} options={{ headerShown: false}} />
-      <Stack.Screen name="AdminHome" component={AdminHome} />
       <Stack.Screen name="WorkerDetail" component={WorkerDetail} options={{ headerShown: false }} />
       <Stack.Screen name="CalendarAvailability" component={CalendarAvailability} options={{ headerShown: false }} />
       <Stack.Screen name="TimeAvailability" component={TimeAvailability} options={{ headerShown: false }} />
       <Stack.Screen name="BookingSuccess" component={BookingSuccess} options={{ headerShown: false }} />
+      <Stack.Screen name="AdminHome" component={AdminHome} options={{ headerShown: false}} />
+      <Stack.Screen name="AdminSearchScreen" component={AdminSearchScreen} options={{ headerShown: false}} />
+      <Stack.Screen name="AddWorker" component={AddWorker} />
+      <Stack.Screen name="EditWorker" component={EditWorker} />
+      <Stack.Screen name="RegisterAdmin" component={RegisterAdmin} />
+      <Stack.Screen name="AllWorstWorkers" component={AllWorstWorkers} />
       <Stack.Screen 
         name="allBookedAppointments" 
         component={allBookedAppointments} 

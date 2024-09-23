@@ -13,13 +13,18 @@ export type RootStackParamList = {
   Register: undefined;
   Login: undefined;
   Home: undefined;
-  AdminHome: undefined;
   SearchScreen: { query: string };
   WorkerDetail: { workerId: string };
   CalendarAvailability: { workerId: string };
   TimeAvailability: { workerId: string; selectedDate: string };
   BookingSuccess: { workerId: string; selectedDate: string; selectedTime: string };
   allBookedAppointments: undefined;
+  AdminHome: undefined;
+  AdminSearchScreen: { query: string };
+  AddWorker: undefined;
+  EditWorker: undefined;
+  RegisterAdmin: undefined;
+  AllWorstWorkers: undefined;
   UserProfile: undefined;
 };
 
