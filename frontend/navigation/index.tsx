@@ -7,6 +7,7 @@ import Register from "../app/register";
 import Welcome from "../app/welcome";
 import Home from "../app/home";
 import AdminHome from "../app/adminHome";
+import AdminSearchScreen from "../app/adminSearchScreen";
 import searchScreen from "../app/searchScreen";
 import WorkerDetail from "../app/WorkerDetail";
 import CalendarAvailability from "../app/CalendarAvailability";
@@ -45,7 +46,8 @@ const RootNavigator: React.FC = () => {
         options={{ headerShown: false }} // Disable default header for Home
       />
       <Stack.Screen name="SearchScreen" component={searchScreen} options={{ headerShown: false}} />
-      <Stack.Screen name="AdminHome" component={AdminHome} />
+      <Stack.Screen name="AdminHome" component={AdminHome} options={{ headerShown: false}} />
+      <Stack.Screen name="AdminSearchScreen" component={AdminSearchScreen} options={{ headerShown: false}} />
       <Stack.Screen name="WorkerDetail" component={WorkerDetail} options={{ headerShown: false }} />
       <Stack.Screen name="CalendarAvailability" component={CalendarAvailability} options={{ headerShown: false }} />
       <Stack.Screen name="TimeAvailability" component={TimeAvailability} options={{ headerShown: false }} />

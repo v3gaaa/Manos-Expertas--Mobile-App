@@ -11,6 +11,7 @@ export const icons = {
   Pin: (size = 24, color = "black") => <FontAwesome5 name="map-location-dot" size={size} color={color} />,
   Calendar: (size = 24, color = "black") => <Ionicons name="calendar" size={size} color={color} />,
   Book: (size = 24, color = "black") => <FontAwesome name="book" size={size} color={color} />,
+  FolderOpen: (size = 24, color = "black") => <FontAwesome name="folder-open" size={size} color={color} />,
   StarFull: (size = 24, color = "black") => <AntDesign name="star" size={size} color={color} />,
   StarEmpty: (size = 24, color = "black") => <AntDesign name="staro" size={size} color={color} />,
   Man: (size = 24, color = "black") => <MaterialCommunityIcons name="face-man" size={size} color={color} />,

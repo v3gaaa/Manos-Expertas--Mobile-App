@@ -14,6 +14,7 @@ export type RootStackParamList = {
   Login: undefined;
   Home: undefined;
   AdminHome: undefined;
+  AdminSearchScreen: { query: string };
   SearchScreen: { query: string };
   WorkerDetail: { workerId: string };
   CalendarAvailability: { workerId: string };
