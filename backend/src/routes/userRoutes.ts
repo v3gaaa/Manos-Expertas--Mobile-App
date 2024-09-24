@@ -132,4 +132,26 @@ router.post('/signup', async (req: Request, res: Response) => {
   }
 });
 
+// Update a user by ID
+router.put('/users/:id', async (req: Request, res: Response) => {
+  const { name, lastName, phoneNumber, profilePicture, address } = req.body;
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      { name, lastName, phoneNumber, profilePicture, address },  // Only allow certain fields to be updated
+      { new: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ message: 'User not found' });
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(400).json({ message: error });
+  }
+});
+
+
+
 export default router;
