@@ -9,12 +9,13 @@ import spacing from '../constants/spacing';
 interface WorkerCardProps {
   id: string; // Añade la propiedad id
   name: string;
+  lastName: string; 
   profession: string;
   profilePicture: string;
   rating: number;
 }
 
-const WorkerCard: React.FC<WorkerCardProps> = ({ id, name, profession, profilePicture, rating }) => {
+const WorkerCard: React.FC<WorkerCardProps> = ({ id, name, lastName, profession, profilePicture, rating }) => {
   const navigation = useNavigation();
 
   const handlePress = () => {
@@ -26,7 +27,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({ id, name, profession, profilePi
       <Image source={{ uri: profilePicture || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.basiclines.com%2Fwp-content%2Fuploads%2F2019%2F01%2Fblank-user.jpg&f=1&nofb=1&ipt=ca5e2c2b13f2cf4fb7ec7284dd85147bf639caab21a1a44c81aa07b30eab197e&ipo=images'}} style={styles.profileImage} />
       <View style={styles.detailSection}>
         <View style={styles.textRatingContainer}>
-          <Text style={styles.workerName}>{name}</Text>
+          <Text style={styles.workerName}>{name} {lastName}</Text>
           <View style={styles.ratingContainer}>
             <AntDesign name="star" size={14} color="#FFD33C" />
             <Text style={styles.ratingText}>{rating}</Text>

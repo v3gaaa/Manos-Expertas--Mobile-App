@@ -54,6 +54,7 @@ const AdminHome: React.FC = () => {
     <WorkerCard 
       id={item._id}
       name={item.name} 
+      lastName={item.lastName}
       profession={item.profession} 
       profilePicture={item.profilePicture} 
       rating={item.rating || 4.5} 

@@ -28,6 +28,7 @@
     "react-native-calendars": "^1.1307.0",
     "react-native-dotenv": "^3.4.11",
     "react-native-get-random-values": "^1.11.0",
+    "react-native-image-picker": "^7.1.2",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-vector-icons": "^10.1.0",
     "react-native-web": "~0.19.10"

@@ -7,6 +7,7 @@ import userRoutes from './routes/userRoutes';
 import workerRoutes from './routes/workerRoutes';
 import bookingRoutes from './routes/bookingRoutes';
 import reviewRoutes from './routes/reviewRoutes';
+import uploadRoutes from './routes/uploadRoutes';
 
 // To run: npx ts-node src/index.ts
 
@@ -30,7 +31,16 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI || '')
-  .then(() => console.log('Connected to MongoDB'))
+  .then(() => {
+    console.log('Connected to MongoDB');
+
+    const client = mongoose.connection.getClient();
+    const dbase = client.db('ManosExpertas');
+
+    const bucket = new mongoose.mongo.GridFSBucket(dbase, { bucketName: 'uploads' });
+    
+    app.use('/api', uploadRoutes(bucket));
+  })
   .catch(err => console.error('Failed to connect to MongoDB', err));
 
 // Routes

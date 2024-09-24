@@ -17,6 +17,7 @@ export interface IUser{
   export interface IWorker {
     _id: string;
     name: string;
+    lastName: string;
     profession: string;
     phoneNumber: string;
     profilePicture: string;
