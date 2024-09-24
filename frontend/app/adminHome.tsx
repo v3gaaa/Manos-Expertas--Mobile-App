@@ -54,6 +54,7 @@ const AdminHome: React.FC = () => {
     <WorkerCard 
       id={item._id}
       name={item.name} 
+      lastName={item.lastName}
       profession={item.profession} 
       profilePicture={item.profilePicture} 
       rating={item.rating || 4.5} 
@@ -114,7 +115,7 @@ const AdminHome: React.FC = () => {
               title="Editar trabajadores"
               utility="Editar perfil"
               iconName="Settings"
-              onPress={() => navigation.navigate('EditWorker')}
+              onPress={() => navigation.navigate('EditWorkerSearch')}
             />
           </View>
       </View>

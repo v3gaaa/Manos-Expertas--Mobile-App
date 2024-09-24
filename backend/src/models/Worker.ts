@@ -2,6 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IWorker extends Document {
   name: string;
+  lastName: string;
   profession: string;
   phoneNumber: string;
   profilePicture: string;

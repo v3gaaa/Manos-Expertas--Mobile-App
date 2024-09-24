@@ -18,6 +18,7 @@ import EditWorker from "../app/editWorker";
 import allBookedAppointments from "../app/allBookedAppointments";
 import RegisterAdmin from "../app/registerAdmin";
 import AllWorstWorkers from "../app/allWorstWorkers";
+import EditWorkerSearch from "../app/editWorkerSearch";
 import UserProfile from "../app/UserProfile";
 import { RootStackParamList } from "../types";
 
@@ -61,6 +62,7 @@ const RootNavigator: React.FC = () => {
       <Stack.Screen name="EditWorker" component={EditWorker} />
       <Stack.Screen name="RegisterAdmin" component={RegisterAdmin} />
       <Stack.Screen name="AllWorstWorkers" component={AllWorstWorkers} />
+      <Stack.Screen name="EditWorkerSearch" component={EditWorkerSearch} />
       <Stack.Screen 
         name="allBookedAppointments" 
         component={allBookedAppointments} 

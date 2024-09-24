@@ -1,6 +1,7 @@
 //const API_URL = 'http://10.0.0.12:5000/api';  // En vez de poner [10.0.0.17] metanse la ip de su compu con ipconfig y usen esa.
 //const API_URL = 'https://f381-189-163-123-144.ngrok-free.app/api';
 import { Platform } from 'react-native';
+import axios from 'axios';
 
 // Define API_URL based on the platform
 const API_URL = Platform.OS === 'web' 
@@ -22,6 +23,21 @@ export interface IUser{
   };
   admin: boolean;
   salt: string;
+}
+
+export interface IWorker {
+  name: string;
+  lastName: string;
+  profession: string;
+  phoneNumber: string;
+  profilePicture: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  description: string;
 }
 
 // Función para iniciar sesión
@@ -226,6 +242,87 @@ export async function getWorstWorkers() {
     return workers;
   } catch (error) {
     console.error('Error in getWorstWorkers:', error);
+    return null;
+  }
+}
+
+// Función para crear trabajador
+export async function createWorker(worker: IWorker) {
+  try {
+    console.log('Creating new worker with body (frontend):', worker);
+    const lol = JSON.stringify(worker);
+    console.log('What is sent: ', lol);
+    const response = await fetch(`${API_URL}/workers`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(worker),
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al crear el trabajador');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error in createWorker:', error);
+    return null;
+  }
+}
+
+// Función para subir una imagen
+export async function uploadImage(uri: string): Promise<string | null> {
+  const formData = new FormData();
+  const fileName = uri.split('/').pop();
+  const type = `image/${fileName?.split('.').pop()}`; 
+
+  try {
+      const response = await fetch(uri);
+      if (!response.ok) {
+          throw new Error('Failed to fetch image');
+      }
+      
+      const blob = await response.blob(); 
+
+      formData.append('file', blob, fileName); 
+
+      const uploadResponse = await fetch(`${API_URL}/upload`, {
+          method: 'POST',
+          body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json();
+          throw new Error(errorData.message || 'Failed to upload image');
+      }
+
+      const data = await uploadResponse.json();
+      
+      const imageUrl = `${API_URL}/files/${data.fileId}`; 
+      
+      return imageUrl; 
+  } catch (error) {
+      console.error('Error uploading image:', error);
+      return null;
+  }
+}
+
+// Función para obtener un trabajador por name, lastName y profession
+export async function getWorkersByNameAndProfession(name: string, lastName: string, profession: string) {
+  try {
+    const response = await fetch(`${API_URL}/workers/search/${name}/${lastName}/${profession}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Error al obtener los datos del trabajador');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error in getWorkerByNameAndProfession:', error);
     return null;
   }
 }

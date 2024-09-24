@@ -150,4 +150,32 @@ router.delete('/workers/:id', async (req: Request, res: Response) => {
   }
 });
 
+// Get workers by name, lastName, and profession
+router.get('/workers/search/:name/:lastName/:profession', async (req: Request, res: Response) => {
+  const { name, lastName, profession } = req.params;
+  console.log('Fetching workers by name, lastName, and profession:', { name, lastName, profession });
+
+  try {
+    if (!name || !lastName || !profession) {
+      return res.status(400).json({ message: 'Name, last name, and profession are required' });
+    }
+
+    const workers = await Worker.find({
+      name: { $regex: name, $options: 'i' },
+      lastName: { $regex: lastName, $options: 'i' },
+      profession: { $regex: profession, $options: 'i' },
+    });
+
+    if (workers.length === 0) {
+      console.log('No workers found for name:', name, ', lastName:', lastName, ', profession:', profession);
+      return res.status(404).json({ message: 'No workers found' });
+    }
+
+    res.json(workers);
+  } catch (error) {
+    console.error('Error fetching workers by name, lastName, and profession:', error);
+    res.status(500).json({ message: 'An unknown error occurred' });
+  }
+});
+
 export default router;

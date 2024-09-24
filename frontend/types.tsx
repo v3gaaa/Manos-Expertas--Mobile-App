@@ -25,6 +25,7 @@ export type RootStackParamList = {
   EditWorker: undefined;
   RegisterAdmin: undefined;
   AllWorstWorkers: undefined;
+  EditWorkerSearch: undefined;
   UserProfile: undefined;
 };
 
