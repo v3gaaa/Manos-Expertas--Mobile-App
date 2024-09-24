@@ -1,5 +1,5 @@
 import React from 'react';
-import { FontAwesome, FontAwesome5, AntDesign, Ionicons, MaterialCommunityIcons, Feather, Entypo } from '@expo/vector-icons';
+import { FontAwesome, FontAwesome5, AntDesign, Ionicons, MaterialCommunityIcons, Feather, Entypo, MaterialIcons } from '@expo/vector-icons';
 import { View, StyleSheet } from 'react-native';
 
 export const icons = {
@@ -7,12 +7,11 @@ export const icons = {
   Back: (size = 24, color = "black") => <AntDesign name="back" size={size} color={color} />,
   Search: (size = 24, color = "black") => <FontAwesome name="search" size={size} color={color} />,
   UserLog: (size = 24, color = "black") => <FontAwesome name="user-circle" size={size} color={color} />,
-  User: (size = 24, color = "black") => <FontAwesome name="user" size={size} color={color} />,
-  Pin: (size = 24, color = "black") => <FontAwesome5 name="map-location-dot" size={size} color={color} />,
+  User: (size = 24, color = "black") => <FontAwesome5 name="user-alt" size={size} color={color} />,
+  Pin: (size = 24, color = "black") => <FontAwesome5 name="map-pin" size={size} color={color} />,
   Calendar: (size = 24, color = "black") => <Ionicons name="calendar" size={size} color={color} />,
   Book: (size = 24, color = "black") => <FontAwesome name="book" size={size} color={color} />,
   FolderOpen: (size = 24, color = "black") => <FontAwesome name="folder-open" size={size} color={color} />,
-  Calendar: (size = 24, color = "black") => <Ionicons name="calendar" size={size} color={color} />,  Book: (size = 24, color = "black") => <FontAwesome name="book" size={size} color={color} />,
   StarFull: (size = 24, color = "black") => <AntDesign name="star" size={size} color={color} />,
   StarEmpty: (size = 24, color = "black") => <AntDesign name="staro" size={size} color={color} />,
   Man: (size = 24, color = "black") => <MaterialCommunityIcons name="face-man" size={size} color={color} />,
@@ -32,6 +31,10 @@ export const icons = {
   Check: (size = 24, color = "black") => <Entypo name="check" size={size} color={color} />,
   Done: (size = 24, color = "black") => <Entypo name="check" size={size} color={color} />,
   Celebrate: (size = 24, color = "black") => <MaterialCommunityIcons name="party-popper" size={size} color={color} />,
+  LocationCity: (size = 24, color = "black") => <MaterialIcons name="location-city" size={size} color={color} />,
+  Road: (size = 24, color = "black") => <MaterialCommunityIcons name="road" size={size} color={color} />,
+  HomeCity: (size = 24, color = "black") => <MaterialCommunityIcons name="home-city" size={size} color={color} />,
+  UserTie: (size = 24, color = "black") => <FontAwesome5 name="user-tie" size={size} color={color} />,
   // Social Media Icons
   facebook: (size = 24, color = "black", backgroundColor?: string) => (
     <View style={[styles.iconContainer, backgroundColor ? { backgroundColor } : undefined]}>

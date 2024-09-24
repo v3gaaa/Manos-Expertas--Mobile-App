@@ -6,24 +6,27 @@ import axios from 'axios';
 // Define API_URL based on the platform
 const API_URL = Platform.OS === 'web' 
   ? 'http://localhost:5000/api'  // Localhost for web
-  : 'https://24e8-189-163-123-144.ngrok-free.app/api';  // ngrok URL for other platforms
+  : 'https://b206-189-163-123-144.ngrok-free.app/api';  // ngrok URL for other platforms
+  //: 'http://10.43.50.35:5000/api'
   
-export interface IUser{
-  name: string;
-  lastName: string;
-  email: string;
-  password: string;
-  phoneNumber: string;
-  profilePicture: string;
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-  };
-  admin: boolean;
-  salt: string;
-}
+  export interface IUser {
+    _id?: string;  // Add _id as an optional field
+    name: string;
+    lastName: string;
+    email: string;
+    password: string;
+    phoneNumber: string;
+    profilePicture: string;
+    address: {
+      street: string;
+      city: string;
+      state: string;
+      zipCode: string;
+    };
+    admin: boolean;
+    salt: string;
+  }
+  
 
 export interface IWorker {
   name: string;
@@ -323,6 +326,28 @@ export async function getWorkersByNameAndProfession(name: string, lastName: stri
     return await response.json();
   } catch (error) {
     console.error('Error in getWorkerByNameAndProfession:', error);
+    return null;
+  }
+}
+
+// Updating user profile in the database
+export async function updateUser(user: IUser) {
+  try {
+    const response = await fetch(`${API_URL}/users/${user._id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(user),
+    });
+
+    if (!response.ok) {
+      throw new Error('Error updating user profile');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error in updateUser:', error);
     return null;
   }
 }
