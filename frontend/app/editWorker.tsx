@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { getWorkerByNameAndProfession } from '../utils/apiHelper'; // Import the function
+import { getWorkersByNameAndProfession } from '../utils/apiHelper'; // Import the function
 
 // Hardcoded values for testing
 const name = 'Juan';
@@ -12,7 +12,7 @@ const EditWorker: React.FC = () => {
 
   useEffect(() => {
     const fetchWorker = async () => {
-      const fetchedWorker = await getWorkerByNameAndProfession(name, lastName, profession);
+      const fetchedWorker = await getWorkersByNameAndProfession(name, lastName, profession);
       console.log('Fetched worker:', fetchedWorker);
 
       // Check if the fetchedWorker is an array and get the first item

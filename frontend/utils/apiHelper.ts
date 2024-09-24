@@ -308,22 +308,8 @@ export async function uploadImage(uri: string): Promise<string | null> {
   }
 }
 
-// Funcion para obtener una imagen
-export const getImage = async (fileId: string): Promise<Blob | null> => {
-  try {
-    const response = await axios.get(`${API_URL}/files/${fileId}`, {
-      responseType: 'blob', // Important to handle binary data
-    });
-
-    return response.data; // Return the image Blob
-  } catch (error) {
-    console.error('Error retrieving image:', error);
-    return null; // Handle the error as needed
-  }
-};
-
 // Función para obtener un trabajador por name, lastName y profession
-export async function getWorkerByNameAndProfession(name: string, lastName: string, profession: string) {
+export async function getWorkersByNameAndProfession(name: string, lastName: string, profession: string) {
   try {
     const response = await fetch(`${API_URL}/workers/search/${name}/${lastName}/${profession}`, {
       method: 'GET',

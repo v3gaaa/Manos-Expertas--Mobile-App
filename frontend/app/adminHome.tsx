@@ -115,7 +115,7 @@ const AdminHome: React.FC = () => {
               title="Editar trabajadores"
               utility="Editar perfil"
               iconName="Settings"
-              onPress={() => navigation.navigate('EditWorker')}
+              onPress={() => navigation.navigate('EditWorkerSearch')}
             />
           </View>
       </View>
