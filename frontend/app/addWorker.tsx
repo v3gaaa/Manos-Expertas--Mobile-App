@@ -3,9 +3,10 @@ import { SafeAreaView, StyleSheet, View, Text, TouchableOpacity, Alert, ScrollVi
 import { Theme } from '../constants/theme';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
-import ImageUploader from '../components/ImageUpload'; // Assuming you have this component
+import ImageUploader from '../components/ImageUpload'; 
 import AppTextInput from '../components/appTextInput';
-import { createWorker, uploadImage } from '../utils/apiHelper'; // Import the uploadImage function
+import SuccessModal from '../components/SuccessModal';
+import { createWorker, uploadImage } from '../utils/apiHelper'; 
 
 const AddWorker: React.FC = () => {
   const [name, setName] = useState('');
@@ -18,6 +19,7 @@ const AddWorker: React.FC = () => {
   const [state, setState] = useState('');
   const [zipCode, setZipCode] = useState('');
   const [description, setDescription] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
 
   const handleAddWorker = async () => {
     if (!name || !lastName || !profession || !phone) {
@@ -28,24 +30,22 @@ const AddWorker: React.FC = () => {
     try {
       let imageUri = profilePicture;
 
-      // Step 1: Upload the image if it's provided
       if (profilePicture) {
-        const uploadedImage = await uploadImage(profilePicture); // Upload the image
+        const uploadedImage = await uploadImage(profilePicture); 
         if (uploadedImage) {
-          imageUri = uploadedImage; // Assuming uploadImage returns the URI of the uploaded image
+          imageUri = uploadedImage; 
         } else {
           Alert.alert('Error', 'No se pudo subir la imagen.');
           return;
         }
       }
 
-      // Step 2: Create the new worker with the uploaded image URI
       const newWorker = {
         name,
         lastName,
         profession,
         phoneNumber: phone,
-        profilePicture: imageUri, // Use the uploaded image URI
+        profilePicture: imageUri, 
         address: {
           street,
           city,
@@ -58,7 +58,18 @@ const AddWorker: React.FC = () => {
       const response = await createWorker(newWorker);
       
       if (response) {
+        setModalVisible(true);
         Alert.alert('Éxito', `Trabajador ${name} agregado como ${profession}`);
+        setName('');
+        setLastName('');
+        setProfession('');
+        setPhone('');
+        setProfilePicture('');
+        setStreet('');
+        setCity('');
+        setState('');
+        setZipCode('');
+        setDescription('');
       } else {
         Alert.alert('Error', 'No se pudo agregar al trabajador.');
       }
@@ -104,6 +115,12 @@ const AddWorker: React.FC = () => {
             <TouchableOpacity onPress={handleAddWorker} style={styles.btn}>
               <Text style={styles.btnText}>Agregar Trabajador</Text>
             </TouchableOpacity>
+
+            <SuccessModal
+              modalVisible={modalVisible}
+              onClose={() => setModalVisible(false)}
+              message="Trabajador agregado exitosamente"
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
