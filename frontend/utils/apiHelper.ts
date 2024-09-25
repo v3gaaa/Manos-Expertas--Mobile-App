@@ -237,8 +237,8 @@ export async function getWorstWorkers() {
 
     const workers = data.flatMap((worker: { averageRating: number; workerDetails: Worker[] }) =>
       worker.workerDetails.map((details) => ({
-        ...details, // spread the worker details
-        rating: worker.averageRating, // add the average rating
+        ...details, 
+        rating: worker.averageRating, 
       }))
     );
 
@@ -253,8 +253,6 @@ export async function getWorstWorkers() {
 export async function createWorker(worker: IWorker) {
   try {
     console.log('Creating new worker with body (frontend):', worker);
-    const lol = JSON.stringify(worker);
-    console.log('What is sent: ', lol);
     const response = await fetch(`${API_URL}/workers`, {
       method: 'POST',
       headers: {
@@ -348,6 +346,28 @@ export async function updateUser(user: IUser) {
     return await response.json();
   } catch (error) {
     console.error('Error in updateUser:', error);
+    return null;
+  }
+}
+
+// Función para crear un admin user
+export async function createAdminUser(user: IUser) {
+  try {
+    const response = await fetch(`${API_URL}/users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(user),
+    });
+
+    if (!response.ok) {
+      throw new Error('Error creating admin user');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error in createAdminUser:', error);
     return null;
   }
 }
