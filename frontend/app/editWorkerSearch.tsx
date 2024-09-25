@@ -5,7 +5,7 @@ import { Theme } from '../constants/theme';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
 import AppTextInput from '../components/appTextInput';
-import WorkerCard from '../components/WorkerCard';
+import HorizontalWorkerCard from '../components/HorizontalWorkerCard';
 
 const EditWorkerSearch = () => {
     const [name, setName] = useState('');
@@ -80,13 +80,13 @@ const EditWorkerSearch = () => {
                                     <View style={styles.workerCardWrapper}>
                                         {workerInfo.map((worker) => (
                                             <View key={worker.id} style={styles.workerCardContainer}>
-                                                <WorkerCard 
-                                                    id={worker.id}
-                                                    name={worker.name}
-                                                    lastName={worker.lastName}
-                                                    profession={worker.profession}
-                                                    profilePicture={worker.profilePicture}
-                                                    rating={worker.rating}
+                                                <HorizontalWorkerCard 
+                                                  id={worker.id}
+                                                  name={worker.name}
+                                                  lastName={worker.lastName}
+                                                  profession={worker.profession}
+                                                  profilePicture={worker.profilePicture}
+                                                  rating={worker.rating}
                                                 />
                                             </View>
                                         ))}
@@ -145,10 +145,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   workerCardContainer: {
-    width: '48%', 
+    width: '100%', 
     marginBottom: spacing, 
     alignItems: 'center',
-    justifyContent: 'center',
   },
   resultText: {
     fontSize: 16,
