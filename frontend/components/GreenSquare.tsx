@@ -17,7 +17,7 @@ type GreenSquareProps = {
 const GreenSquare = ({ title, utility, iconName, onPress }: GreenSquareProps) => { 
     const IconComponent = icons[iconName];
     return (
-        <View>
+        <View style={styles.container}>
             {/* Title Section */}
             <View style={styles.titleContainer}>
                 <Text style={styles.title}>{`${title}`}</Text>
@@ -46,6 +46,11 @@ const GreenSquare = ({ title, utility, iconName, onPress }: GreenSquareProps) =>
 };
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     titleContainer: {
         alignItems: 'center',
         marginBottom: 8,
@@ -54,6 +59,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontFamily: fonts.PoppinsMedium,
         color: Theme.colors.bamxGrey,
+        textAlign: 'center',
     },
     card: {
         backgroundColor: Theme.colors.bamxGreen,
@@ -64,6 +70,7 @@ const styles = StyleSheet.create({
         // padding: 8,
         position: 'relative',
         alignSelf: 'center',
+        flex: 1,
     },
     toolContainer: {
         position: 'absolute',

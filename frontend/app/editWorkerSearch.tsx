@@ -76,7 +76,7 @@ const EditWorkerSearch = () => {
                             </View>
 
                             <View style={styles.resultsContainer}>
-                                {workerInfo.length > 0 ? (
+                                {workerInfo !== null && workerInfo.length > 0 ? (
                                     <View style={styles.workerCardWrapper}>
                                         {workerInfo.map((worker) => (
                                             <View key={worker.id} style={styles.workerCardContainer}>

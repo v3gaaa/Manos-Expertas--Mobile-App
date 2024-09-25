@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     marginTop: spacing * 2,
   },
   viewAllButton: {
-    fontSize: Theme.size.sm,
+    fontSize: 12,
     color: "blue",
     fontFamily: fonts.PoppinsMedium,
     marginTop: 6,
@@ -207,14 +207,13 @@ const styles = StyleSheet.create({
     height: 200,
   },
   bottomContainer: {
-    flex: 1,
-    justifyContent: 'flex-end', 
     marginBottom: 20, 
   },
   greenSquaresContainer: {
     flexDirection: 'row', 
     justifyContent: 'space-between', 
-    paddingHorizontal: 20, 
+    paddingHorizontal: 20,
+    width: '100%', 
   },
   btn: {
     padding: spacing,

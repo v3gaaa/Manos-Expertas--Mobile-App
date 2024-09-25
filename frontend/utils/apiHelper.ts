@@ -7,7 +7,7 @@ import axios from 'axios';
 const API_URL = Platform.OS === 'web' 
   ? 'http://localhost:5000/api'  // Localhost for web
   : 'https://b206-189-163-123-144.ngrok-free.app/api';  // ngrok URL for other platforms
-  //: 'http://10.43.50.35:5000/api'
+  // : 'http://10.43.96.163:5000/api'
   
   export interface IUser {
     _id?: string;  // Add _id as an optional field
@@ -325,7 +325,7 @@ export async function getWorkersByNameAndProfession(name: string, lastName: stri
     }
     return await response.json();
   } catch (error) {
-    console.error('Error in getWorkerByNameAndProfession:', error);
+    console.error('Error in getWorkersByNameAndProfession:', error);
     return null;
   }
 }
