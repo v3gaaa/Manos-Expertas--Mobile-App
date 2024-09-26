@@ -43,8 +43,8 @@ router.get('/bookings/worker/:workerId', async (req: Request, res: Response) => 
 // Create a new booking
 router.post('/bookings', async (req: Request, res: Response) => {
   console.log('Creating new booking with body:', req.body);
-  const { worker, user, startDate, endDate } = req.body;
-  const booking = new Booking({ worker, user, startDate, endDate });
+  const { worker, user, startDate, endDate, startHour, endHour } = req.body; // Include new fields
+  const booking = new Booking({ worker, user, startDate, endDate, startHour, endHour }); // Create booking with new fields
   
   try {
     const newBooking = await booking.save();
