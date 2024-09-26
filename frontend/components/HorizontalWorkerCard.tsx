@@ -1,7 +1,6 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import fonts from '../constants/fonts';
 import spacing from '../constants/spacing';
 
@@ -14,15 +13,10 @@ interface WorkerCardProps {
   rating: number;
 }
 
-const HorizontalWorkerCard: React.FC<WorkerCardProps> = ({ id, name, lastName, profession, profilePicture, rating }) => {
-  const navigation = useNavigation();
-
-  const handlePress = () => {
-    navigation.navigate('EditWorker', { workerId: id });
-  };
+const HorizontalWorkerCard: React.FC<WorkerCardProps> = ({ name, lastName, profession, profilePicture, rating }) => {
 
   return (
-    <TouchableOpacity onPress={handlePress} style={styles.cardContainer}>
+    <View style={styles.cardContainer}>
       <Image 
         source={{ uri: profilePicture || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.basiclines.com%2Fwp-content%2Fuploads%2F2019%2F01%2Fblank-user.jpg&f=1&nofb=1&ipt=ca5e2c2b13f2cf4fb7ec7284dd85147bf639caab21a1a44c81aa07b30eab197e&ipo=images'}} 
         style={styles.profileImage} 
@@ -37,7 +31,7 @@ const HorizontalWorkerCard: React.FC<WorkerCardProps> = ({ id, name, lastName, p
         </View>
         <Text style={styles.professionText}>{profession}</Text>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 };
 

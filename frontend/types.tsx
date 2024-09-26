@@ -23,9 +23,9 @@ export type RootStackParamList = {
   AdminSearchScreen: { query: string };
   AddWorker: undefined;
   EditWorker: { workerId: string };
+  EditWorkerSearch: undefined;
   RegisterAdmin: undefined;
   AllWorstWorkers: undefined;
-  EditWorkerSearch: undefined;
   UserProfile: undefined;
 };
 

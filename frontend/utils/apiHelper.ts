@@ -9,23 +9,23 @@ const API_URL = Platform.OS === 'web'
   : 'https://b206-189-163-123-144.ngrok-free.app/api';  // ngrok URL for other platforms
   // : 'http://10.43.96.163:5000/api'
   
-  export interface IUser {
-    _id?: string;  // Add _id as an optional field
-    name: string;
-    lastName: string;
-    email: string;
-    password: string;
-    phoneNumber: string;
-    profilePicture: string;
-    address: {
-      street: string;
-      city: string;
-      state: string;
-      zipCode: string;
-    };
-    admin: boolean;
-    salt: string;
-  }
+export interface IUser {
+  _id?: string;  // Add _id as an optional field
+  name: string;
+  lastName: string;
+  email: string;
+  password: string;
+  phoneNumber: string;
+  profilePicture: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  admin: boolean;
+  salt: string;
+}
   
 
 export interface IWorker {
@@ -369,6 +369,29 @@ export async function createAdminUser(user: IUser) {
     return await response.json();
   } catch (error) {
     console.error('Error in createAdminUser:', error);
+    return null;
+  }
+}
+
+// Función para editar un trabajador
+export async function editWorker(workerId: string, worker: IWorker) {
+  try {
+    console.log('Editing worker with body (frontend):', worker);
+    const response = await fetch(`${API_URL}/workers/${workerId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(worker),
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al editar el trabajador');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error in editWorker:', error);
     return null;
   }
 }

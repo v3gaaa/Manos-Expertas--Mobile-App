@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Theme } from '../constants/theme';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
@@ -7,21 +8,26 @@ import fonts from '../constants/fonts';
 type SuccessModalProps = {
     modalVisible: boolean;
     message: string;
-    onClose: () => void;
   };
 
-const SuccessModal = ({ modalVisible, onClose, message }: SuccessModalProps) => {
+const SuccessModal = ({ modalVisible, message }: SuccessModalProps) => {
+  const navigation = useNavigation();
+
+  const handleClose = () => {
+    navigation.navigate('AdminHome');
+  };
+
   return (
     <Modal
       animationType="slide"
       transparent={true}
       visible={modalVisible}
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalView}>
           <Text style={styles.modalText}>{message}</Text>
-          <TouchableOpacity style={styles.button} onPress={onClose}>
+          <TouchableOpacity style={styles.button} onPress={handleClose}>
             <Text style={styles.buttonText}>OK</Text>
           </TouchableOpacity>
         </View>
