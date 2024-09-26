@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, SafeAreaView, Modal, Alert } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Theme } from '../constants/theme';
 import spacing from '../constants/spacing';
@@ -13,6 +13,7 @@ export default function TimeAvailability() {
   const [selectedStartTime, setSelectedStartTime] = useState<string | null>(null);
   const [selectedEndTime, setSelectedEndTime] = useState<string | null>(null);
   const [selectingEndTime, setSelectingEndTime] = useState<boolean>(false);
+  const [confirmModalVisible, setConfirmModalVisible] = useState<boolean>(false);
 
   const availableTimes = [
     '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM',
@@ -23,10 +24,20 @@ export default function TimeAvailability() {
   const handleTimeSelect = (time: string) => {
     if (!selectingEndTime) {
       setSelectedStartTime(time);
-      setSelectingEndTime(true);
+      setConfirmModalVisible(true);
     } else {
       setSelectedEndTime(time);
     }
+  };
+
+  const handleConfirmStartTime = () => {
+    setConfirmModalVisible(false);
+    setSelectingEndTime(true);
+  };
+
+  const handleCancelStartTime = () => {
+    setSelectedStartTime(null);
+    setConfirmModalVisible(false);
   };
 
   const handleReserve = () => {
@@ -37,12 +48,6 @@ export default function TimeAvailability() {
         startDate: selectedStartTime,
         endDate: selectedEndTime,
         selectedTime: `${selectedStartTime} - ${selectedEndTime}`,
-      } as {
-        workerId: string;
-        selectedDate: string;
-        startDate: string;
-        endDate: string;
-        selectedTime: string;
       });
     }
   };
@@ -57,6 +62,7 @@ export default function TimeAvailability() {
           {selectingEndTime ? 'Hora de finalización' : 'Hora de inicio'}
         </Text>
       </View>
+
       <View style={styles.content}>
         <Text style={styles.subtitle}>
           {selectingEndTime ? 'Selecciona la hora de finalización' : 'Selecciona la hora de inicio'}
@@ -89,6 +95,7 @@ export default function TimeAvailability() {
           columnWrapperStyle={styles.timeRow}
         />
       </View>
+
       <TouchableOpacity
         style={[
           styles.reserveButton,
@@ -99,6 +106,28 @@ export default function TimeAvailability() {
       >
         <Text style={styles.buttonText}>Reservar</Text>
       </TouchableOpacity>
+
+      {/* Confirmation Modal */}
+      <Modal
+        transparent
+        visible={confirmModalVisible}
+        animationType="slide"
+        onRequestClose={handleCancelStartTime}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalText}>Confirmar hora de inicio: {selectedStartTime}?</Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.modalButton} onPress={handleConfirmStartTime}>
+                <Text style={styles.modalButtonText}>Confirmar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButton} onPress={handleCancelStartTime}>
+                <Text style={styles.modalButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -176,6 +205,40 @@ const styles = StyleSheet.create({
   buttonText: {
     fontFamily: fonts.PoppinsSemiBold,
     fontSize: Theme.size.md,
+    color: Theme.colors.white,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: Theme.colors.white,
+    padding: spacing * 2,
+    borderRadius: spacing,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalText: {
+    fontFamily: fonts.PoppinsMedium,
+    fontSize: Theme.size.md,
+    marginBottom: spacing,
+    textAlign: 'center',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  modalButton: {
+    margin: spacing / 2,
+    paddingVertical: spacing,
+    paddingHorizontal: spacing * 2,
+    borderRadius: spacing,
+    backgroundColor: Theme.colors.bamxGreen,
+  },
+  modalButtonText: {
+    fontFamily: fonts.PoppinsSemiBold,
     color: Theme.colors.white,
   },
 });
