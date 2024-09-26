@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { SafeAreaView, KeyboardAvoidingView, View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { getWorkersByNameAndProfession } from '../utils/apiHelper'; 
 import { Theme } from '../constants/theme';
+import { useNavigation } from '@react-navigation/native';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
 import AppTextInput from '../components/appTextInput';
-import WorkerCard from '../components/WorkerCard';
+import HorizontalWorkerCard from '../components/HorizontalWorkerCard';
 
 const EditWorkerSearch = () => {
     const [name, setName] = useState('');
@@ -15,12 +16,19 @@ const EditWorkerSearch = () => {
     const [isCollapsed, setIsCollapsed] = useState(false); 
     const [isSearched, setIsSearched] = useState(false);
 
+    const navigation = useNavigation();
+
     const handleSearch = async () => {
-        const workerData = await getWorkersByNameAndProfession(name, lastName, profession);
-        setWorkerInfo(workerData);
-        setIsCollapsed(true); 
-        setIsSearched(true);
+      const workerData = await getWorkersByNameAndProfession(name, lastName, profession);
+      setWorkerInfo(workerData);
+      setIsCollapsed(true); 
+      setIsSearched(true);
     };
+
+    const handleWorkerPress = (workerId: string) => {
+      navigation.navigate('EditWorker', { workerId });
+    };
+  
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
@@ -76,18 +84,20 @@ const EditWorkerSearch = () => {
                             </View>
 
                             <View style={styles.resultsContainer}>
-                                {workerInfo.length > 0 ? (
+                                {workerInfo !== null && workerInfo.length > 0 ? (
                                     <View style={styles.workerCardWrapper}>
                                         {workerInfo.map((worker) => (
-                                            <View key={worker.id} style={styles.workerCardContainer}>
-                                                <WorkerCard 
-                                                    id={worker.id}
-                                                    name={worker.name}
-                                                    lastName={worker.lastName}
-                                                    profession={worker.profession}
-                                                    profilePicture={worker.profilePicture}
-                                                    rating={worker.rating}
+                                            <View key={worker._id} style={styles.workerCardContainer}>
+                                              <TouchableOpacity onPress={() => handleWorkerPress(worker._id)}>
+                                                <HorizontalWorkerCard 
+                                                  id={worker._id}
+                                                  name={worker.name}
+                                                  lastName={worker.lastName}
+                                                  profession={worker.profession}
+                                                  profilePicture={worker.profilePicture}
+                                                  rating={worker.rating}
                                                 />
+                                              </TouchableOpacity>
                                             </View>
                                         ))}
                                     </View>
@@ -145,12 +155,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   workerCardContainer: {
-    width: '48%', 
+    width: '100%', 
     marginBottom: spacing, 
     alignItems: 'center',
-    justifyContent: 'center',
   },
   resultText: {
+    textAlign: 'center',
+    color: Theme.colors.bamxGrey,
+    fontFamily: fonts.PoppinsMedium,
     fontSize: 16,
   },
   image: {

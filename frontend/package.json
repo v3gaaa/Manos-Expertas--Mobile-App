@@ -6,14 +6,12 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web",
-    "postinstall": "expo install && ncu -u && npm install"
+    "web": "expo start --web"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-community/datetimepicker": "^8.2.0",
     "@react-navigation/stack": "^6.4.1",
-    "@unimodules/core": "^7.2.0",
     "axios": "^1.7.5",
     "crypto-js": "^4.2.0",
     "expo": "^51.0.31",

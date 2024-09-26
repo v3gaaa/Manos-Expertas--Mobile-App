@@ -7,25 +7,25 @@ import axios from 'axios';
 const API_URL = Platform.OS === 'web' 
   ? 'http://localhost:5000/api'  // Localhost for web
   : 'https://b206-189-163-123-144.ngrok-free.app/api';  // ngrok URL for other platforms
-  //: 'http://10.43.50.35:5000/api'
+  // : 'http://10.43.96.163:5000/api'
   
-  export interface IUser {
-    _id?: string;  // Add _id as an optional field
-    name: string;
-    lastName: string;
-    email: string;
-    password: string;
-    phoneNumber: string;
-    profilePicture: string;
-    address: {
-      street: string;
-      city: string;
-      state: string;
-      zipCode: string;
-    };
-    admin: boolean;
-    salt: string;
-  }
+export interface IUser {
+  _id?: string;  // Add _id as an optional field
+  name: string;
+  lastName: string;
+  email: string;
+  password: string;
+  phoneNumber: string;
+  profilePicture: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  admin: boolean;
+  salt: string;
+}
   
 
 export interface IWorker {
@@ -237,8 +237,8 @@ export async function getWorstWorkers() {
 
     const workers = data.flatMap((worker: { averageRating: number; workerDetails: Worker[] }) =>
       worker.workerDetails.map((details) => ({
-        ...details, // spread the worker details
-        rating: worker.averageRating, // add the average rating
+        ...details, 
+        rating: worker.averageRating, 
       }))
     );
 
@@ -253,8 +253,6 @@ export async function getWorstWorkers() {
 export async function createWorker(worker: IWorker) {
   try {
     console.log('Creating new worker with body (frontend):', worker);
-    const lol = JSON.stringify(worker);
-    console.log('What is sent: ', lol);
     const response = await fetch(`${API_URL}/workers`, {
       method: 'POST',
       headers: {
@@ -325,7 +323,7 @@ export async function getWorkersByNameAndProfession(name: string, lastName: stri
     }
     return await response.json();
   } catch (error) {
-    console.error('Error in getWorkerByNameAndProfession:', error);
+    console.error('Error in getWorkersByNameAndProfession:', error);
     return null;
   }
 }
@@ -348,6 +346,52 @@ export async function updateUser(user: IUser) {
     return await response.json();
   } catch (error) {
     console.error('Error in updateUser:', error);
+    return null;
+  }
+}
+
+// Función para crear un admin user
+export async function createAdminUser(user: IUser) {
+  try {
+    console.log('Creating new admin user with body (frontend):', user);
+    const response = await fetch(`${API_URL}/admin`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(user),
+    });
+
+    if (!response.ok) {
+      throw new Error('Error creating admin user');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error in createAdminUser:', error);
+    return null;
+  }
+}
+
+// Función para editar un trabajador
+export async function editWorker(workerId: string, worker: IWorker) {
+  try {
+    console.log('Editing worker with body (frontend):', worker);
+    const response = await fetch(`${API_URL}/workers/${workerId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(worker),
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al editar el trabajador');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error in editWorker:', error);
     return null;
   }
 }

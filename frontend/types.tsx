@@ -22,10 +22,10 @@ export type RootStackParamList = {
   AdminHome: undefined;
   AdminSearchScreen: { query: string };
   AddWorker: undefined;
-  EditWorker: undefined;
+  EditWorker: { workerId: string };
+  EditWorkerSearch: undefined;
   RegisterAdmin: undefined;
   AllWorstWorkers: undefined;
-  EditWorkerSearch: undefined;
   UserProfile: undefined;
 };
 
