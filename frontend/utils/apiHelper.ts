@@ -353,7 +353,8 @@ export async function updateUser(user: IUser) {
 // Función para crear un admin user
 export async function createAdminUser(user: IUser) {
   try {
-    const response = await fetch(`${API_URL}/users`, {
+    console.log('Creating new admin user with body (frontend):', user);
+    const response = await fetch(`${API_URL}/admin`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

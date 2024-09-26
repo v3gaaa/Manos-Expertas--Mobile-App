@@ -56,6 +56,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     title: {
+        maxWidth: 130,
         fontSize: 16,
         fontFamily: fonts.PoppinsMedium,
         color: Theme.colors.bamxGrey,
@@ -65,12 +66,9 @@ const styles = StyleSheet.create({
         backgroundColor: Theme.colors.bamxGreen,
         borderRadius: 12,
         width: 130,
-        height: 'auto', 
-        minHeight: 110, 
-        // padding: 8,
+        height: 120,     
         position: 'relative',
-        alignSelf: 'center',
-        flex: 1,
+        alignSelf: 'center',       
     },
     toolContainer: {
         position: 'absolute',

@@ -152,6 +152,21 @@ router.put('/users/:id', async (req: Request, res: Response) => {
   }
 });
 
+// Create a new admin user
+router.post('/admin', async (req: Request, res: Response) => {
+  console.log('Creating new admin with body:', req.body);
+  const { name, lastName, email, password, phoneNumber, profilePicture, address, salt } = req.body;
+  const user = new User({ name, lastName, email, password, phoneNumber, profilePicture, address, admin: true, salt });
+  
+  try {
+    const newAdmin = await user.save();
+    res.status(201).json(newAdmin);
+  } catch (error) {
+    console.error('Error creating admin:', error);
+    res.status(400).json({ message: error });
+  }
+});
+
 
 
 export default router;
