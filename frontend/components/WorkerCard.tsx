@@ -41,7 +41,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({ id, name, lastName, profession,
 
 const styles = StyleSheet.create({
   cardContainer: {
-    width: 156,
+    width: 180,
     height: 193,
     borderRadius: 12,
     backgroundColor: '#FFFFFF',
