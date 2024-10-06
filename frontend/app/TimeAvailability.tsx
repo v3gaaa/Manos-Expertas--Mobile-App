@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, SafeAreaView, Modal, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { SafeAreaView, StyleSheet, View, Text, TouchableOpacity, Alert } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createBooking } from '../utils/apiHelper';
 import { Theme } from '../constants/theme';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
@@ -9,46 +11,54 @@ import { Feather } from '@expo/vector-icons';
 export default function TimeAvailability() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { workerId, selectedDate } = route.params as { workerId: string; selectedDate: string };
-  const [selectedStartTime, setSelectedStartTime] = useState<string | null>(null);
-  const [selectedEndTime, setSelectedEndTime] = useState<string | null>(null);
-  const [selectingEndTime, setSelectingEndTime] = useState<boolean>(false);
-  const [confirmModalVisible, setConfirmModalVisible] = useState<boolean>(false);
+  const { workerId, selectedDates } = route.params as { workerId: string; selectedDates: string[] };
+  
+  const [hoursPerDay, setHoursPerDay] = useState<number>(1);
+  const [userId, setUserId] = useState<string | null>(null);  // Estado para almacenar el userId
 
-  const availableTimes = [
-    '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM',
-    '11:00 AM', '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM',
-    '04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM'
-  ];
+  // Obtener el userId desde AsyncStorage al montar el componente
+  useEffect(() => {
+    const loadUserId = async () => {
+      try {
+        const user = await AsyncStorage.getItem('user');
+        if (user) {
+          const parsedUser = JSON.parse(user);
+          setUserId(parsedUser._id);  // Guarda el userId del usuario logueado
+        } else {
+          Alert.alert('Error', 'No se pudo obtener la información del usuario');
+        }
+      } catch (error) {
+        console.error('Error cargando el userId:', error);
+        Alert.alert('Error', 'Hubo un problema al cargar el usuario');
+      }
+    };
+    loadUserId();
+  }, []);
 
-  const handleTimeSelect = (time: string) => {
-    if (!selectingEndTime) {
-      setSelectedStartTime(time);
-      setConfirmModalVisible(true);
-    } else {
-      setSelectedEndTime(time);
+  const handleHourSelect = (hours: number) => {
+    setHoursPerDay(hours);
+  };
+
+  const handleReserve = async () => {
+    if (!userId) {
+      Alert.alert('Error', 'No se pudo obtener la información del usuario');
+      return;
     }
-  };
 
-  const handleConfirmStartTime = () => {
-    setConfirmModalVisible(false);
-    setSelectingEndTime(true);
-  };
-
-  const handleCancelStartTime = () => {
-    setSelectedStartTime(null);
-    setConfirmModalVisible(false);
-  };
-
-  const handleReserve = () => {
-    if (selectedStartTime && selectedEndTime) {
-      navigation.navigate('BookingSuccess', {
-        workerId,
-        selectedDate,
-        startDate: selectedStartTime,
-        endDate: selectedEndTime,
-        selectedTime: `${selectedStartTime} - ${selectedEndTime}`,
-      });
+    try {
+      for (const date of selectedDates) {
+        await createBooking({
+          worker: workerId,
+          user: userId,  // Pasar el userId correcto desde AsyncStorage
+          startDate: new Date(date),
+          endDate: new Date(date),
+          hoursPerDay,
+        });
+      }
+      navigation.navigate('BookingSuccess', { workerId, selectedDates, hoursPerDay });
+    } catch (error) {
+      console.error('Error creando la reserva:', error);
+      Alert.alert('Error', 'Hubo un problema al crear la reserva');
     }
   };
 
@@ -58,76 +68,38 @@ export default function TimeAvailability() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Feather name="arrow-left" size={24} color={Theme.colors.black} />
         </TouchableOpacity>
-        <Text style={styles.title}>
-          {selectingEndTime ? 'Hora de finalización' : 'Hora de inicio'}
-        </Text>
+        <Text style={styles.title}>Horas por día</Text>
       </View>
-
       <View style={styles.content}>
-        <Text style={styles.subtitle}>
-          {selectingEndTime ? 'Selecciona la hora de finalización' : 'Selecciona la hora de inicio'}
-        </Text>
-        <FlatList
-          data={availableTimes}
-          keyExtractor={(item) => item}
-          renderItem={({ item }) => (
+        <Text style={styles.subtitle}>Selecciona las horas de trabajo por día</Text>
+        <View style={styles.hoursContainer}>
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((hour) => (
             <TouchableOpacity
+              key={hour}
               style={[
-                styles.timeButton,
-                (item === selectedStartTime && !selectingEndTime) ||
-                (item === selectedEndTime && selectingEndTime)
-                  ? styles.selectedTimeButton
-                  : null,
+                styles.hourButton,
+                hoursPerDay === hour && styles.selectedHourButton,
               ]}
-              onPress={() => handleTimeSelect(item)}
+              onPress={() => handleHourSelect(hour)}
             >
-              <Text style={[
-                styles.timeText,
-                ((item === selectedStartTime && !selectingEndTime) ||
-                (item === selectedEndTime && selectingEndTime)) &&
-                styles.selectedTimeText
-              ]}>
-                {item}
+              <Text
+                style={[
+                  styles.hourButtonText,
+                  hoursPerDay === hour && styles.selectedHourButtonText,
+                ]}
+              >
+                {hour}
               </Text>
             </TouchableOpacity>
-          )}
-          numColumns={3}
-          columnWrapperStyle={styles.timeRow}
-        />
-      </View>
-
-      <TouchableOpacity
-        style={[
-          styles.reserveButton,
-          !(selectedStartTime && selectedEndTime) && styles.disabledButton,
-        ]}
-        onPress={handleReserve}
-        disabled={!(selectedStartTime && selectedEndTime)}
-      >
-        <Text style={styles.buttonText}>Reservar</Text>
-      </TouchableOpacity>
-
-      {/* Confirmation Modal */}
-      <Modal
-        transparent
-        visible={confirmModalVisible}
-        animationType="slide"
-        onRequestClose={handleCancelStartTime}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>Confirmar hora de inicio: {selectedStartTime}?</Text>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalButton} onPress={handleConfirmStartTime}>
-                <Text style={styles.modalButtonText}>Confirmar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalButton} onPress={handleCancelStartTime}>
-                <Text style={styles.modalButtonText}>Cancelar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          ))}
         </View>
-      </Modal>
+      </View>
+      <TouchableOpacity
+        style={styles.reserveButton}
+        onPress={handleReserve}
+      >
+        <Text style={styles.reserveButtonText}>Reservar</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -162,33 +134,33 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily: fonts.PoppinsMedium,
     fontSize: Theme.size.lg,
-    color: Theme.colors.bamxGrey,
+    color: Theme.colors.black,
     marginBottom: spacing * 2,
-    textAlign: 'center',
   },
-  timeRow: {
+  hoursContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: spacing,
   },
-  timeButton: {
-    padding: spacing,
-    borderRadius: spacing,
-    backgroundColor: Theme.colors.white,
+  hourButton: {
+    width: '23%',
+    aspectRatio: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: Theme.colors.white,
+    borderRadius: spacing,
     marginBottom: spacing,
-    flex: 1,
-    marginHorizontal: spacing / 2,
     ...Theme.shadows,
   },
-  selectedTimeButton: {
+  selectedHourButton: {
     backgroundColor: Theme.colors.bamxGreen,
   },
-  timeText: {
-    fontFamily: fonts.PoppinsMedium,
-    fontSize: Theme.size.sm,
+  hourButtonText: {
+    fontFamily: fonts.PoppinsSemiBold,
+    fontSize: Theme.size.md,
     color: Theme.colors.black,
   },
-  selectedTimeText: {
+  selectedHourButtonText: {
     color: Theme.colors.white,
   },
   reserveButton: {
@@ -199,46 +171,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     ...Theme.shadows,
   },
-  disabledButton: {
-    backgroundColor: Theme.colors.babyGrey,
-  },
-  buttonText: {
+  reserveButtonText: {
     fontFamily: fonts.PoppinsSemiBold,
     fontSize: Theme.size.md,
-    color: Theme.colors.white,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    backgroundColor: Theme.colors.white,
-    padding: spacing * 2,
-    borderRadius: spacing,
-    width: '80%',
-    alignItems: 'center',
-  },
-  modalText: {
-    fontFamily: fonts.PoppinsMedium,
-    fontSize: Theme.size.md,
-    marginBottom: spacing,
-    textAlign: 'center',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  modalButton: {
-    margin: spacing / 2,
-    paddingVertical: spacing,
-    paddingHorizontal: spacing * 2,
-    borderRadius: spacing,
-    backgroundColor: Theme.colors.bamxGreen,
-  },
-  modalButtonText: {
-    fontFamily: fonts.PoppinsSemiBold,
     color: Theme.colors.white,
   },
 });

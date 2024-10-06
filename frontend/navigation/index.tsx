@@ -20,6 +20,7 @@ import RegisterAdmin from "../app/registerAdmin";
 import AllWorstWorkers from "../app/allWorstWorkers";
 import EditWorkerSearch from "../app/editWorkerSearch";
 import UserProfile from "../app/UserProfile";
+import BookingDetails from "../app/BookingDetails";
 import { RootStackParamList } from "../types";
 
 const theme = {
@@ -66,12 +67,17 @@ const RootNavigator: React.FC = () => {
       <Stack.Screen 
         name="allBookedAppointments" 
         component={allBookedAppointments} 
-        options={{ headerShown: false, animationEnabled: false }} // Disable animation for allBookedAppointments
+        options={{ headerShown: false, animationEnabled: false }}
       />
       <Stack.Screen 
         name="UserProfile" 
         component={UserProfile} 
-        options={{ headerShown: false, animationEnabled: false }} // Disable animation for UserProfile
+        options={{ headerShown: false, animationEnabled: false }}
+      />
+      <Stack.Screen 
+        name="BookingDetails" 
+        component={BookingDetails} 
+        options={{ headerShown: false, animationEnabled: false }}
       />
     </Stack.Navigator>
   );

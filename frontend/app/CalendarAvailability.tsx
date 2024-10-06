@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { Calendar } from 'react-native-calendars';
+import { Calendar, DateData } from 'react-native-calendars';
+import { checkWorkerAvailability } from '../utils/apiHelper';
 import { Theme } from '../constants/theme';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
@@ -11,11 +12,39 @@ export default function CalendarAvailability() {
   const route = useRoute();
   const navigation = useNavigation();
   const { workerId } = route.params as { workerId: string };
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  
+  const [selectedDates, setSelectedDates] = useState<{ [date: string]: { selected: boolean, selectedColor: string } }>({});
+  const [availableDates, setAvailableDates] = useState<{ [date: string]: { disabled: boolean } }>({});
 
-  const handleDateSelect = (day: any) => {
-    setSelectedDate(day.dateString);
+  useEffect(() => {
+    const checkAvailability = async () => {
+      const today = new Date();
+      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
+      let currentDate = today;
+      const newAvailableDates: { [date: string]: { disabled: boolean } } = {};
+
+      while (currentDate <= nextMonth) {
+        const availability = await checkWorkerAvailability(workerId, currentDate);
+        const dateString = currentDate.toISOString().split('T')[0];
+        newAvailableDates[dateString] = { disabled: availability.availableHours === 0 };
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      setAvailableDates(newAvailableDates);
+    };
+
+    checkAvailability();
+  }, [workerId]);
+
+  const handleDateSelect = (day: DateData) => {
+    setSelectedDates(prevDates => {
+      const newDates = { ...prevDates };
+      if (newDates[day.dateString]) {
+        delete newDates[day.dateString];
+      } else {
+        newDates[day.dateString] = { selected: true, selectedColor: Theme.colors.bamxRed };
+      }
+      return newDates;
+    });
   };
 
   return (
@@ -24,46 +53,26 @@ export default function CalendarAvailability() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Feather name="arrow-left" size={24} color={Theme.colors.black} />
         </TouchableOpacity>
-        <Text style={styles.title}>Selecciona una fecha</Text>
+        <Text style={styles.title}>Selecciona fechas</Text>
       </View>
       <View style={styles.calendarContainer}>
         <Calendar
           onDayPress={handleDateSelect}
-          markedDates={{
-            [selectedDate || '']: { selected: true, selectedColor: Theme.colors.bamxRed },
-          }}
-          theme={{
-            backgroundColor: Theme.colors.white,
-            calendarBackground: Theme.colors.white,
-            textSectionTitleColor: Theme.colors.bamxGrey,
-            selectedDayBackgroundColor: Theme.colors.bamxRed,
-            selectedDayTextColor: Theme.colors.white,
-            todayTextColor: Theme.colors.bamxYellow,
-            dayTextColor: Theme.colors.black,
-            textDisabledColor: Theme.colors.babyGrey,
-            dotColor: Theme.colors.bamxRed,
-            selectedDotColor: Theme.colors.white,
-            arrowColor: Theme.colors.bamxYellow,
-            monthTextColor: Theme.colors.bamxGreen,
-            textDayFontFamily: fonts.PoppinsMedium,
-            textMonthFontFamily: fonts.PoppinsSemiBold,
-            textDayHeaderFontFamily: fonts.PoppinsMedium,
-            textDayFontSize: 16,
-            textMonthFontSize: 18,
-            textDayHeaderFontSize: 14,
-          }}
+          markedDates={{...selectedDates, ...availableDates}}
+          minDate={new Date().toISOString().split('T')[0]}
         />
       </View>
       <TouchableOpacity 
-        style={[styles.continueButton, !selectedDate && styles.disabledButton]} 
-        disabled={!selectedDate} 
-        onPress={() => navigation.navigate('TimeAvailability', { workerId, selectedDate: selectedDate ?? '' })}
+        style={[styles.continueButton, Object.keys(selectedDates).length === 0 && styles.disabledButton]} 
+        disabled={Object.keys(selectedDates).length === 0} 
+        onPress={() => navigation.navigate('TimeAvailability', { workerId, selectedDates: Object.keys(selectedDates) })}
       >
         <Text style={styles.buttonText}>Continuar</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

@@ -1,41 +1,79 @@
-// allBookedAppointments.tsx
-import React from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Footer from '../components/footer';
 import { Theme } from '../constants/theme';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
-
-// Placeholder data
-const bookingPlaceholders = [
-  { id: '1', workerName: 'Alfredo Morfin', profession: 'Carpintero', date: '08 Oct 2024', startHour: '10:00', endHour: '12:00' },
-  { id: '2', workerName: 'María Lopez', profession: 'Plomero', date: '12 Oct 2024', startHour: '13:00', endHour: '14:30' },
-  { id: '3', workerName: 'Carlos Gutierrez', profession: 'Electricista', date: '15 Oct 2024', startHour: '09:00', endHour: '11:00' },
-  { id: '4', workerName: 'Elena Rodriguez', profession: 'Jardinero', date: '20 Oct 2024', startHour: '08:00', endHour: '10:00' },
-];
+import { getUserBookings } from '../utils/apiHelper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AllBookedAppointments = () => {
+  const [bookings, setBookings] = useState<any[]>([]); // Para almacenar las reservas del usuario
+  const [loading, setLoading] = useState<boolean>(true); // Para manejar el estado de carga
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const fetchUserBookings = async () => {
+      try {
+        // Obtén el userId desde AsyncStorage
+        const user = await AsyncStorage.getItem('user');
+        if (user) {
+          const parsedUser = JSON.parse(user);
+          const userId = parsedUser._id;
+
+          // Llamada a la API para obtener las reservas del usuario
+          const userBookings = await getUserBookings(userId);
+          setBookings(userBookings || []); // Guarda las reservas obtenidas
+        } else {
+          Alert.alert('Error', 'No se pudo obtener la información del usuario');
+        }
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+        Alert.alert('Error', 'Hubo un problema al obtener tus reservas');
+      } finally {
+        setLoading(false); // Detén el indicador de carga
+      }
+    };
+
+    fetchUserBookings();
+  }, []);
+
   const renderBookingCard = ({ item }: { item: any }) => (
     <View style={styles.bookingCard}>
-      <Text style={styles.workerName}>{item.workerName}</Text>
-      <Text style={styles.profession}>{item.profession}</Text>
-      <Text style={styles.date}>Fecha: {item.date}</Text>
-      <Text style={styles.time}>Hora: {item.startHour} - {item.endHour}</Text>
-      <TouchableOpacity style={styles.detailsButton}>
-        <Text style={styles.detailsButtonText}>Ver trabajador</Text>
+      <Text style={styles.workerName}>{item.worker.name} {item.worker.lastName}</Text>
+      <Text style={styles.profession}>{item.worker.profession}</Text>
+      <Text style={styles.date}>Fecha: {new Date(item.startDate).toLocaleDateString()}</Text>
+      <Text style={styles.time}>Horas por día: {item.hoursPerDay}</Text>
+
+      <TouchableOpacity
+        style={styles.detailsButton}
+        onPress={() => navigation.navigate('BookingDetails', { bookingId: item._id })}
+      >
+        <Text style={styles.detailsButtonText}>Ver Detalles</Text>
       </TouchableOpacity>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Citas Agendadas</Text>
-      <FlatList
-        data={bookingPlaceholders}
-        renderItem={renderBookingCard}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
-      />
+      <Text style={styles.title}>Mis Citas Agendadas</Text>
+
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Theme.colors.bamxGreen} />
+        </View>
+      ) : bookings.length === 0 ? (
+        <Text style={styles.noBookingsText}>No tienes citas agendadas.</Text>
+      ) : (
+        <FlatList
+          data={bookings}
+          renderItem={renderBookingCard}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.listContainer}
+        />
+      )}
+
       <View style={styles.footerContainer}>
         <Footer />
       </View>
@@ -48,6 +86,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Theme.colors.bgColor,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   title: {
     fontFamily: fonts.PoppinsSemiBold,
     fontSize: Theme.size.xl,
@@ -57,6 +100,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: spacing * 2,
+    paddingBottom: 100, // Add extra padding at the bottom for the footer
   },
   bookingCard: {
     backgroundColor: Theme.colors.white,
@@ -95,7 +139,7 @@ const styles = StyleSheet.create({
   },
   detailsButton: {
     paddingVertical: spacing / 2,
-    backgroundColor: Theme.colors.green,
+    backgroundColor: Theme.colors.bamxGreen,
     borderRadius: spacing / 2,
     alignItems: 'center',
   },
@@ -109,6 +153,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+  },
+  noBookingsText: {
+    fontFamily: fonts.PoppinsRegular,
+    fontSize: Theme.size.md,
+    textAlign: 'center',
+    color: Theme.colors.bamxGrey,
+    marginTop: spacing * 4,
   },
 });
 

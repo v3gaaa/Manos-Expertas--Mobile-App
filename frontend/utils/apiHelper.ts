@@ -195,28 +195,6 @@ export async function getWorkerById(id: string) {
   }
 }
 
-// Función para crear una nueva reserva
-export async function createBooking(bookingData: { worker: string; user: string; startDate: Date; endDate: Date, startHour: string, endHour: string }) {
-  try {
-    const response = await fetch(`${API_URL}/bookings`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(bookingData),
-    });
-
-    if (!response.ok) {
-      throw new Error('Error creating booking');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error in createBooking:', error);
-    return null;
-  }
-}
-
 // Función para obtener a los trabajadores con peor rating
 export async function getWorstWorkers() {
   try {
@@ -392,6 +370,99 @@ export async function editWorker(workerId: string, worker: IWorker) {
     return await response.json();
   } catch (error) {
     console.error('Error in editWorker:', error);
+    return null;
+  }
+}
+
+// Verificar disponibilidad de un trabajador
+export async function checkWorkerAvailability(workerId: string, date: Date) {
+  try {
+    const response = await axios.get(`${API_URL}/bookings/availability/${workerId}`, {
+      params: { date: date.toISOString() },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error checking availability:', error);
+    return { availableHours: 0 };  // Maneja error devolviendo 0 horas disponibles
+  }
+}
+
+// Crear una nueva reserva
+export async function createBooking(bookingData: {
+  worker: string;
+  user: string;
+  startDate: Date;
+  endDate: Date;
+  hoursPerDay: number;
+}) {
+  try {
+    const response = await axios.post(`${API_URL}/bookings`, bookingData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating booking:', error);
+    throw new Error('Error al crear la reserva');
+  }
+}
+
+// Función para obtener las reservas de un trabajador
+export async function getWorkerBookings(workerId: string) {
+  try {
+    const response = await fetch(`${API_URL}/bookings/worker/${workerId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al obtener las reservas del trabajador');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error en getWorkerBookings:', error);
+    return null;
+  }
+}
+
+// Función para obtener las reservas de un usuario
+export async function getUserBookings(userId: string) {
+  try {
+    const response = await fetch(`${API_URL}/bookings/user/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al obtener las reservas del usuario');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error en getUserBookings:', error);
+    return null;
+  }
+}
+
+// Función para obtener reservas por id
+export async function getBookingById(bookingId: string) {
+  try {
+    const response = await fetch(`${API_URL}/bookings/${bookingId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al obtener la reserva');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error en getBookingById:', error);
     return null;
   }
 }

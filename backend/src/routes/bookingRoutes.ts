@@ -1,83 +1,93 @@
 import express, { Request, Response } from 'express';
 import Booking from '../models/Booking';
+import Worker from '../models/Worker';
 
 const router = express.Router();
 
-// Get all bookings
-router.get('/bookings', async (req: Request, res: Response) => {
+// Obtener todas las reservas
+router.get('/bookings', async (_req: Request, res: Response) => {
   try {
-    console.log("Fetching all bookings");
-    const bookings = await Booking.find().populate('worker').populate('user');
+    const bookings = await Booking.find();
     res.json(bookings);
   } catch (error) {
-    console.error('Error fetching bookings:', error);
-    res.status(500).json({ message: error });
+    res.status(500).json({ message: (error as Error).message });
   }
 });
 
-// Get a booking by ID
-router.get('/bookings/:id', async (req: Request, res: Response) => {
+//Obtener una reserva por su id
+router.get('/bookings/:bookingId', async (req, res) => {
   try {
-    console.log(`Fetching booking by ID: ${req.params.id}`);
-    const booking = await Booking.findById(req.params.id).populate('worker').populate('user');
-    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+    const booking = await Booking.findById(req.params.bookingId);
     res.json(booking);
   } catch (error) {
-    console.error('Error fetching booking by ID:', error);
-    res.status(500).json({ message: error });
+    res.status(500).json({ message: (error as Error).message });
   }
 });
 
-// Get all bookings by worker ID
-router.get('/bookings/worker/:workerId', async (req: Request, res: Response) => {
+// Crear una nueva reserva
+router.post('/bookings', async (req, res) => {
   try {
-    console.log(`Fetching bookings for worker ID: ${req.params.workerId}`);
-    const bookings = await Booking.find({ worker: req.params.workerId }).populate('worker').populate('user');
-    res.json(bookings);
-  } catch (error) {
-    console.error('Error fetching bookings by worker ID:', error);
-    res.status(500).json({ message: error });
-  }
-});
+    const { worker, user, startDate, endDate, hoursPerDay } = req.body;
+    
+    // Calcular el total de horas
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const days = (end.getTime() - start.getTime()) / (1000 * 3600 * 24) + 1;
+    const totalHours = days * hoursPerDay;
 
-// Create a new booking
-router.post('/bookings', async (req: Request, res: Response) => {
-  console.log('Creating new booking with body:', req.body);
-  const { worker, user, startDate, endDate, startHour, endHour } = req.body; // Include new fields
-  const booking = new Booking({ worker, user, startDate, endDate, startHour, endHour }); // Create booking with new fields
-  
-  try {
-    const newBooking = await booking.save();
+    const newBooking = new Booking({
+      worker,
+      user,
+      startDate,
+      endDate,
+      hoursPerDay,
+      totalHours
+    });
+
+    await newBooking.save();
     res.status(201).json(newBooking);
+    console.log('Booking created successfully:', newBooking);
   } catch (error) {
-    console.error('Error creating new booking:', error);
-    res.status(400).json({ message: error });
+    res.status(400).json({ message: (error as Error).message });
   }
 });
 
-// Update a booking by ID
-router.put('/bookings/:id', async (req: Request, res: Response) => {
-  console.log(`Updating booking with ID: ${req.params.id}, body:`, req.body);
+// Obtener todas las reservas de un trabajador
+router.get('/bookings/worker/:workerId', async (req, res) => {
   try {
-    const booking = await Booking.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!booking) return res.status(404).json({ message: 'Booking not found' });
-    res.json(booking);
+    const bookings = await Booking.find({ worker: req.params.workerId });
+    res.json(bookings);
   } catch (error) {
-    console.error('Error updating booking:', error);
-    res.status(400).json({ message: error });
+    res.status(500).json({ message: (error as Error).message });
   }
 });
 
-// Delete a booking by ID
-router.delete('/bookings/:id', async (req: Request, res: Response) => {
-  console.log(`Deleting booking with ID: ${req.params.id}`);
+// Obtener todas las reservas de un usuario
+router.get('/bookings/user/:userId', async (req, res) => {
   try {
-    const booking = await Booking.findByIdAndDelete(req.params.id);
-    if (!booking) return res.status(404).json({ message: 'Booking not found' });
-    res.json({ message: 'Booking deleted' });
+    const bookings = await Booking.find({ user: req.params.userId });
+    res.json(bookings);
   } catch (error) {
-    console.error('Error deleting booking:', error);
-    res.status(500).json({ message: error });
+    res.status(500).json({ message: (error as Error).message });
+  }
+});
+
+// Verificar disponibilidad de un trabajador
+router.get('/bookings/availability/:workerId', async (req, res) => {
+  try {
+    const { date } = req.query;
+    const bookings = await Booking.find({
+      worker: req.params.workerId,
+      startDate: { $lte: new Date(date as string) },
+      endDate: { $gte: new Date(date as string) }
+    });
+
+    const totalHoursBooked = bookings.reduce((sum, booking) => sum + booking.hoursPerDay, 0);
+    const availableHours = 8 - totalHoursBooked;
+
+    res.json({ availableHours });
+  } catch (error) {
+    res.status(500).json({ message: (error as Error).message });
   }
 });
 

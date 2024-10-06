@@ -1,49 +1,43 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Theme } from '../constants/theme';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
 import { Feather } from '@expo/vector-icons';
 
 export default function BookingSuccess() {
-  const route = useRoute();
   const navigation = useNavigation();
-  const { workerId, selectedDate, startDate, endDate } = route.params as {
-    workerId: string;
-    selectedDate: string;
-    startDate: string;
-    endDate: string;
+  const route = useRoute();
+  const { workerId, selectedDates, hoursPerDay } = route.params as { workerId: string; selectedDates: string[]; hoursPerDay: number };
+
+  const handleGoHome = () => {
+    navigation.navigate('Home');
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <View style={styles.iconContainer}>
-          <Feather name="check-circle" size={80} color={Theme.colors.bamxGreen} />
-        </View>
+        <Feather name="check-circle" size={100} color={Theme.colors.bamxGreen} />
         <Text style={styles.title}>¡Reserva exitosa!</Text>
+        <Text style={styles.subtitle}>Tu reserva ha sido confirmada</Text>
+
+        <Text style={styles.description}>
+          Detalles de la reserva:
+        </Text>
+
         <View style={styles.detailsContainer}>
-          <View style={styles.detailRow}>
-            <Feather name="calendar" size={24} color={Theme.colors.bamxGrey} />
-            <Text style={styles.details}>Día: {selectedDate}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Feather name="clock" size={24} color={Theme.colors.bamxGrey} />
-            <Text style={styles.details}>Hora de inicio: {startDate}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Feather name="clock" size={24} color={Theme.colors.bamxGrey} />
-            <Text style={styles.details}>Hora de finalización: {endDate}</Text>
-          </View>
+          <Text style={styles.detailsText}>ID del Trabajador: {workerId}</Text>
+          <Text style={styles.detailsText}>Fechas: {selectedDates.join(', ')}</Text>
+          <Text style={styles.detailsText}>Horas por día: {hoursPerDay}</Text>
         </View>
-        <TouchableOpacity
-          style={styles.continueButton}
-          onPress={() => navigation.navigate('Home')}
-        >
-          <Text style={styles.buttonText}>Volver al inicio</Text>
-        </TouchableOpacity>
       </View>
+      <TouchableOpacity
+        style={styles.homeButton}
+        onPress={handleGoHome}
+      >
+        <Text style={styles.homeButtonText}>Volver al inicio</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -59,44 +53,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing * 2,
   },
-  iconContainer: {
-    marginBottom: spacing * 2,
-  },
   title: {
     fontFamily: fonts.PoppinsSemiBold,
-    fontSize: Theme.size.xl,
-    color: Theme.colors.bamxGreen,
-    marginBottom: spacing * 3,
+    fontSize: Theme.size.xxl,
+    color: Theme.colors.black,
+    marginTop: spacing * 2,
+    marginBottom: spacing,
+  },
+  subtitle: {
+    fontFamily: fonts.PoppinsMedium,
+    fontSize: Theme.size.lg,
+    color: Theme.colors.bamxGrey,
+    marginBottom: spacing * 2,
+  },
+  description: {
+    fontFamily: fonts.PoppinsRegular,
+    fontSize: Theme.size.md,
+    color: Theme.colors.black,
     textAlign: 'center',
+    marginBottom: spacing * 2,
   },
   detailsContainer: {
     backgroundColor: Theme.colors.white,
-    borderRadius: spacing,
     padding: spacing * 2,
-    width: '100%',
+    borderRadius: spacing,
     ...Theme.shadows,
   },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing,
-  },
-  details: {
-    fontFamily: fonts.PoppinsMedium,
+  detailsText: {
+    fontFamily: fonts.PoppinsRegular,
     fontSize: Theme.size.md,
     color: Theme.colors.black,
-    marginLeft: spacing,
+    marginBottom: spacing,
   },
-  continueButton: {
-    marginTop: spacing * 3,
+  homeButton: {
+    margin: spacing * 2,
     paddingVertical: spacing * 1.5,
-    paddingHorizontal: spacing * 3,
     borderRadius: spacing,
     backgroundColor: Theme.colors.bamxGreen,
     alignItems: 'center',
     ...Theme.shadows,
   },
-  buttonText: {
+  homeButtonText: {
     fontFamily: fonts.PoppinsSemiBold,
     fontSize: Theme.size.md,
     color: Theme.colors.white,

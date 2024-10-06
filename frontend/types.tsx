@@ -27,6 +27,7 @@ export type RootStackParamList = {
   RegisterAdmin: undefined;
   AllWorstWorkers: undefined;
   UserProfile: undefined;
+  BookingDetails: { bookingId: string };
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =
