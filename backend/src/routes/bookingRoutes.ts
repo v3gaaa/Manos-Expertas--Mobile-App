@@ -17,7 +17,7 @@ router.get('/bookings', async (_req: Request, res: Response) => {
 //Obtener una reserva por su id
 router.get('/bookings/:bookingId', async (req, res) => {
   try {
-    const booking = await Booking.findById(req.params.bookingId);
+    const booking = await Booking.findById(req.params.bookingId).populate('worker').populate('user');
     res.json(booking);
   } catch (error) {
     res.status(500).json({ message: (error as Error).message });
@@ -55,7 +55,7 @@ router.post('/bookings', async (req, res) => {
 // Obtener todas las reservas de un trabajador
 router.get('/bookings/worker/:workerId', async (req, res) => {
   try {
-    const bookings = await Booking.find({ worker: req.params.workerId });
+    const bookings = await Booking.find({ worker: req.params.workerId }).populate('user');
     res.json(bookings);
   } catch (error) {
     res.status(500).json({ message: (error as Error).message });
@@ -65,7 +65,7 @@ router.get('/bookings/worker/:workerId', async (req, res) => {
 // Obtener todas las reservas de un usuario
 router.get('/bookings/user/:userId', async (req, res) => {
   try {
-    const bookings = await Booking.find({ user: req.params.userId });
+    const bookings = await Booking.find({ user: req.params.userId }).populate('worker');
     res.json(bookings);
   } catch (error) {
     res.status(500).json({ message: (error as Error).message });

@@ -6,7 +6,7 @@ import axios from 'axios';
 // Define API_URL based on the platform
 const API_URL = Platform.OS === 'web' 
   ? 'http://localhost:5000/api'  // Localhost for web
-  : 'http://10.43.120.99:5000/api';  // ngrok URL for other platforms
+  : 'http://192.168.1.88:5000/api';  // ngrok URL for other platforms
   // : 'http://10.43.96.163:5000/api'
   
 export interface IUser {
