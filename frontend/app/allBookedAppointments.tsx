@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Alert, RefreshControl, SafeAreaView, SectionList, StatusBar } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Alert, RefreshControl, SafeAreaView, SectionList, StatusBar, Modal, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Footer from '../components/footer';
 import { Theme } from '../constants/theme';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
-import { getUserBookings } from '../utils/apiHelper';
+import { getUserBookings, updateBookingStatus, createReview } from '../utils/apiHelper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather } from '@expo/vector-icons';
 
@@ -13,6 +13,10 @@ const AllBookedAppointments = () => {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [rating, setRating] = useState<number>(0);
+  const [comment, setComment] = useState<string>('');
   const navigation = useNavigation();
 
   const fetchUserBookings = useCallback(async () => {
@@ -44,8 +48,11 @@ const AllBookedAppointments = () => {
     fetchUserBookings();
   }, [fetchUserBookings]);
 
-  const groupBookingsByMonth = useCallback((bookings) => {
-    const grouped = bookings.reduce((acc, booking) => {
+  const groupBookings = useCallback((bookings) => {
+    const activeBookings = bookings.filter(booking => booking.status !== 'completed');
+    const completedBookings = bookings.filter(booking => booking.status === 'completed');
+
+    const groupedActive = activeBookings.reduce((acc, booking) => {
       const date = new Date(booking.startDate);
       const monthYear = `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
       if (!acc[monthYear]) {
@@ -55,17 +62,60 @@ const AllBookedAppointments = () => {
       return acc;
     }, {});
 
-    return Object.entries(grouped).map(([title, data]) => ({ title, data }));
+    const sections = Object.entries(groupedActive).map(([title, data]) => ({ title, data }));
+    
+    if (completedBookings.length > 0) {
+      sections.push({ title: 'Citas Completadas', data: completedBookings });
+    }
+
+    return sections;
   }, []);
 
+  const handleCompleteBooking = async (booking) => {
+    try {
+      await updateBookingStatus(booking._id, 'completed');
+      setSelectedBooking(booking);
+      setModalVisible(true);
+    } catch (error) {
+      console.error('Error completing booking:', error);
+      Alert.alert('Error', 'Hubo un problema al completar la reserva');
+    }
+  };
+
+  const handleSubmitReview = async () => {
+    try {
+      if (rating === 0) {
+        Alert.alert('Error', 'Por favor, selecciona una calificación');
+        return;
+      }
+
+      await createReview({
+        worker: selectedBooking.worker._id,
+        user: selectedBooking.user,
+        booking: selectedBooking._id,
+        rating,
+        comment
+      });
+
+      setModalVisible(false);
+      setRating(0);
+      setComment('');
+      fetchUserBookings();
+      Alert.alert('Éxito', 'Tu reseña ha sido enviada. ¡Gracias por tu feedback!');
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      Alert.alert('Error', 'Hubo un problema al enviar tu reseña');
+    }
+  };
+
   const renderBookingCard = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      style={styles.bookingCard}
-      onPress={() => navigation.navigate('BookingDetails', { bookingId: item._id })}
-      accessibilityRole="button"
-      accessibilityLabel={`Ver detalles de la cita con ${item.worker.name} ${item.worker.lastName}`}
-    >
-      <View style={styles.cardContent}>
+    <View style={[styles.bookingCard, item.status === 'completed' && styles.completedBookingCard]}>
+      <TouchableOpacity
+        style={styles.cardContent}
+        onPress={() => navigation.navigate('BookingDetails', { bookingId: item._id })}
+        accessibilityRole="button"
+        accessibilityLabel={`Ver detalles de la cita con ${item.worker.name} ${item.worker.lastName}`}
+      >
         <View style={styles.avatarContainer}>
           <Text style={styles.avatarText}>
             {item.worker.name[0]}{item.worker.lastName[0]}
@@ -86,14 +136,89 @@ const AllBookedAppointments = () => {
           </View>
         </View>
         <Feather name="chevron-right" size={24} color={Theme.colors.bamxGrey} />
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+      {item.status !== 'completed' && (
+        <TouchableOpacity
+          style={styles.completeButton}
+          onPress={() => handleCompleteBooking(item)}
+          accessibilityRole="button"
+          accessibilityLabel="Marcar cita como completada"
+        >
+          <Text style={styles.completeButtonText}>Completar</Text>
+        </TouchableOpacity>
+      )}
+      {item.status === 'completed' && !item.hasReview && (
+        <TouchableOpacity
+          style={styles.reviewButton}
+          onPress={() => {
+            setSelectedBooking(item);
+            setModalVisible(true);
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Dejar una reseña"
+        >
+          <Text style={styles.reviewButtonText}>Dejar reseña</Text>
+        </TouchableOpacity>
+      )}
+    </View>
   );
 
   const renderSectionHeader = ({ section: { title } }) => (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionHeaderText}>{title}</Text>
     </View>
+  );
+
+  const renderReviewModal = () => (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={modalVisible}
+      onRequestClose={() => setModalVisible(false)}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Deja tu reseña</Text>
+          <View style={styles.ratingContainer}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <TouchableOpacity
+                key={star}
+                onPress={() => setRating(star)}
+                style={styles.starButton}
+              >
+                <Feather
+                  name={star <= rating ? "star" : "star"}
+                  size={30}
+                  color={star <= rating ? Theme.colors.bamxYellow : Theme.colors.bamxGrey}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Text style={styles.ratingText}>
+            {rating === 0 ? 'Selecciona una calificación' : `Has seleccionado ${rating} ${rating === 1 ? 'estrella' : 'estrellas'}`}
+          </Text>
+          <TextInput
+            style={styles.commentInput}
+            placeholder="Escribe tu comentario aquí (opcional)"
+            placeholderTextColor={Theme.colors.bamxGrey}
+            multiline
+            numberOfLines={4}
+            value={comment}
+            onChangeText={setComment}
+          />
+          <TouchableOpacity 
+            style={[styles.submitButton, rating === 0 && styles.disabledButton]}
+            onPress={handleSubmitReview}
+            disabled={rating === 0}
+          >
+            <Text style={styles.submitButtonText}>Enviar reseña</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+            <Text style={styles.cancelButtonText}>Después</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
   );
 
   return (
@@ -117,7 +242,7 @@ const AllBookedAppointments = () => {
         </View>
       ) : (
         <SectionList
-          sections={groupBookingsByMonth(bookings)}
+          sections={groupBookings(bookings)}
           renderItem={renderBookingCard}
           renderSectionHeader={renderSectionHeader}
           keyExtractor={(item) => item._id}
@@ -139,6 +264,8 @@ const AllBookedAppointments = () => {
           }
         />
       )}
+
+      {renderReviewModal()}
 
       <Footer />
     </SafeAreaView>
@@ -199,6 +326,9 @@ const styles = StyleSheet.create({
     borderRadius: spacing,
     ...Theme.shadows,
   },
+  completedBookingCard: {
+    backgroundColor: '#D2D4C8', // Light grey
+  },
   cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -258,7 +388,7 @@ const styles = StyleSheet.create({
     marginTop: spacing * 2,
     marginBottom: spacing * 3,
   },
-  newBookingButton: {
+  newBookingButton:  {
     backgroundColor: Theme.colors.bamxGreen,
     paddingVertical: spacing,
     paddingHorizontal: spacing * 2,
@@ -268,6 +398,105 @@ const styles = StyleSheet.create({
     fontFamily: fonts.PoppinsSemiBold,
     fontSize: Theme.size.md,
     color: Theme.colors.white,
+  },
+  completeButton: {
+    backgroundColor: Theme.colors.bamxGreen,
+    paddingVertical: spacing,
+    paddingHorizontal: spacing * 2,
+    borderRadius: spacing,
+    alignSelf: 'flex-end',
+    marginRight: spacing * 2,
+    marginBottom: spacing,
+  },
+  completeButtonText: {
+    fontFamily: fonts.PoppinsSemiBold,
+    fontSize: Theme.size.sm,
+    color: Theme.colors.white,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: Theme.colors.white,
+    borderRadius: spacing * 2,
+    padding: spacing * 3,
+    width: '90%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontFamily: fonts.PoppinsSemiBold,
+    fontSize: Theme.size.xl,
+    color: Theme.colors.black,
+    marginBottom: spacing * 2,
+    textAlign: 'center',
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: spacing,
+  },
+  starButton: {
+    padding: spacing / 2,
+  },
+  ratingText: {
+    fontFamily: fonts.PoppinsRegular,
+    fontSize: Theme.size.md,
+    color: Theme.colors.bamxGrey,
+    textAlign: 'center',
+    marginBottom: spacing * 2,
+  },
+  commentInput: {
+    borderWidth: 1,
+    borderColor: Theme.colors.bamxGrey,
+    borderRadius: spacing,
+    padding: spacing,
+    marginBottom: spacing * 2,
+    fontSize: Theme.size.md,
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+  submitButton: {
+    backgroundColor: Theme.colors.bamxGreen,
+    paddingVertical: spacing * 1.5,
+    borderRadius: spacing,
+    marginBottom: spacing,
+  },
+  disabledButton: {
+    backgroundColor: Theme.colors.bamxGrey,
+  },
+  submitButtonText: {
+    fontFamily: fonts.PoppinsSemiBold,
+    fontSize: Theme.size.md,
+    color: Theme.colors.white,
+    textAlign: 'center',
+  },
+  cancelButton: {
+    backgroundColor: 'transparent',
+    paddingVertical: spacing,
+    borderRadius: spacing,
+  },
+  cancelButtonText: {
+    fontFamily: fonts.PoppinsSemiBold,
+    fontSize: Theme.size.md,
+    color: Theme.colors.bamxGrey,
+    textAlign: 'center',
+  },
+  reviewButton: {
+    backgroundColor: Theme.colors.bamxYellow,
+    paddingVertical: spacing,
+    paddingHorizontal: spacing * 2,
+    borderRadius: spacing,
+    alignSelf: 'flex-end',
+    marginRight: spacing * 2,
+    marginBottom: spacing,
+  },
+  reviewButtonText: {
+    fontFamily: fonts.PoppinsSemiBold,
+    fontSize: Theme.size.sm,
+    color: Theme.colors.black,
   },
 });
 

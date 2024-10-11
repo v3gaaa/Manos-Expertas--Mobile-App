@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, ActivityIndicator, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { getWorkersByQuery } from '../utils/apiHelper';
+import { getWorkersByQuery, getAllWorkers } from '../utils/apiHelper'; // Asegúrate de importar la nueva función
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
 import { Theme } from '../constants/theme';
@@ -22,8 +22,16 @@ export default function SearchScreen() {
           setLoading(false);
           return;
         }
+
         setLoading(true);
-        const workerData = await getWorkersByQuery(query);
+
+        let workerData;
+        if (query.toLowerCase() === 'all') {
+          workerData = await getAllWorkers(); // Si el query es "all", obtenemos todos los trabajadores
+        } else {
+          workerData = await getWorkersByQuery(query); // Si no, buscamos por query
+        }
+
         setWorkers(workerData || []);
       } catch (error) {
         console.error('Error fetching workers:', error);
@@ -39,7 +47,7 @@ export default function SearchScreen() {
       style={styles.workerCard}
       onPress={() => navigation.navigate('WorkerDetail', { workerId: item._id })}
     >
-      <Image source={{ uri: item.profilePicture || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.basiclines.com%2Fwp-content%2Fuploads%2F2019%2F01%2Fblank-user.jpg&f=1&nofb=1&ipt=ca5e2c2b13f2cf4fb7ec7284dd85147bf639caab21a1a44c81aa07b30eab197e&ipo=images'}} style={styles.workerImage} />
+      <Image source={{ uri: item.profilePicture || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.basiclines.com%2Fwp-content%2Fuploads%2F2019%2F01%2Fblank-user.jpg&f=1&nofb=1&ipt=ca5e2c2b13f2cf4fb7ec7284dd85147bf639caab21a1a44c81aa07b30eab197e&ipo=images' }} style={styles.workerImage} />
       <View style={styles.workerInfo}>
         <Text style={styles.workerName}>{item.name} {item.lastName}</Text>
         <Text style={styles.workerProfession}>{item.profession}</Text>
@@ -78,6 +86,7 @@ export default function SearchScreen() {
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

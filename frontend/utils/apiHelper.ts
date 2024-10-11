@@ -43,6 +43,16 @@ export interface IWorker {
   description: string;
 }
 
+
+export interface IReview {
+  _id?: string;
+  worker: string;
+  user: string;
+  booking: string;
+  comment?: string;
+  rating: number;
+}
+
 // Función para iniciar sesión
 export async function logIn(email: string, password: string) {
   try {
@@ -177,18 +187,21 @@ export async function getProfessions() {
   }
 }
 
-export async function getWorkerById(id: string) {
+export async function getWorkerById(id: string): Promise<IWorker | null> {
   try {
-    const response = await fetch(`${API_URL}/workers/${id}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    if (!response.ok) {
+    const response = await axios.get(`${API_URL}/workers/${id}`);
+    if (response.status !== 200) {
       throw new Error('Error al obtener los datos del trabajador');
     }
-    return await response.json();
+    const workerData = response.data;
+    
+    // Fetch reviews for the worker
+    const reviewsResponse = await axios.get(`${API_URL}/reviews/worker/${id}`);
+    if (reviewsResponse.status === 200) {
+      workerData.reviews = reviewsResponse.data;
+    }
+
+    return workerData;
   } catch (error) {
     console.error('Error in getWorkerById:', error);
     return null;
@@ -463,6 +476,130 @@ export async function getBookingById(bookingId: string) {
     return await response.json();
   } catch (error) {
     console.error('Error en getBookingById:', error);
+    return null;
+  }
+}
+
+// Get all reviews
+export async function getAllReviews() {
+  try {
+    const response = await axios.get(`${API_URL}/reviews`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching all reviews:', error);
+    return null;
+  }
+}
+
+// Get all reviews by worker ID
+export async function getReviewsByWorkerId(workerId: string) {
+  try {
+    const response = await axios.get(`${API_URL}/reviews/worker/${workerId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching reviews by worker ID:', error);
+    return null;
+  }
+}
+
+// Get the average rating of a worker
+export async function getWorkerAverageRating(workerId: string) {
+  try {
+    const response = await axios.get(`${API_URL}/reviews/worker/${workerId}/average-rating`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching worker average rating:', error);
+    return null;
+  }
+}
+
+// Get the number of reviews of a worker by worker ID
+export async function getWorkerReviewCount(workerId: string) {
+  try {
+    const response = await axios.get(`${API_URL}/reviews/worker/${workerId}/count`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching worker review count:', error);
+    return null;
+  }
+}
+
+// Get workers with the lowest average rating
+export async function getLowestRatedWorkers() {
+  try {
+    const response = await axios.get(`${API_URL}/reviews/workers/lowest-rated`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching lowest-rated workers:', error);
+    return null;
+  }
+}
+
+// Get workers with the highest average rating
+export async function getHighestRatedWorkers() {
+  try {
+    const response = await axios.get(`${API_URL}/reviews/workers/highest-rated`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching highest-rated workers:', error);
+    return null;
+  }
+}
+
+// Delete a review by ID
+export async function deleteReview(reviewId: string) {
+  try {
+    const response = await axios.delete(`${API_URL}/reviews/${reviewId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting review:', error);
+    throw new Error('Error al eliminar la reseña');
+  }
+}
+
+
+// Update booking status
+export async function updateBookingStatus(bookingId: string, status: 'pending' | 'confirmed' | 'completed' | 'cancelled') {
+  try {
+    const response = await axios.put(`${API_URL}/bookings/${bookingId}/status`, { status });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating booking status:', error);
+    throw new Error('Error al actualizar el estado de la reserva');
+  }
+}
+
+// Create a new review
+export async function createReview(review: {
+  worker: string;
+  user: string;
+  booking: string;
+  rating: number;
+  comment?: string;
+}) {
+  try {
+    const response = await axios.post(`${API_URL}/reviews`, review);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating review:', error);
+    throw new Error('Error al crear la reseña');
+  }
+}
+
+export async function getAllWorkers() {
+  try {
+    const response = await fetch(`${API_URL}/workers`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Error fetching all workers');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error in getAllWorkers:', error);
     return null;
   }
 }
