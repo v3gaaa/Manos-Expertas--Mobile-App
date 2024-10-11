@@ -1,19 +1,8 @@
 import express, { Request, Response } from 'express';
-import mongoose from 'mongoose';
 import Booking from '../models/Booking';
 import Worker from '../models/Worker';
-import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
-
-// Set up rate limiter: maximum of 100 requests per 15 minutes
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-});
-
-// Apply rate limiter to all requests
-router.use(limiter);
 
 // Obtener todas las reservas
 router.get('/bookings', async (_req: Request, res: Response) => {
@@ -28,11 +17,7 @@ router.get('/bookings', async (_req: Request, res: Response) => {
 //Obtener una reserva por su id
 router.get('/bookings/:bookingId', async (req, res) => {
   try {
-    const { bookingId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(bookingId)) {
-      return res.status(400).json({ message: 'Invalid booking ID' });
-    }
-    const booking = await Booking.findOne({ _id: { $eq: bookingId } }).populate('worker').populate('user');
+    const booking = await Booking.findById(req.params.bookingId).populate('worker').populate('user');
     res.json(booking);
   } catch (error) {
     res.status(500).json({ message: (error as Error).message });
@@ -121,7 +106,7 @@ router.put('/bookings/:bookingId/status', async (req: Request, res: Response) =>
 
     const updatedBooking = await Booking.findByIdAndUpdate(
       bookingId,
-      { status: { $eq: status } },
+      { status },
       { new: true }
     );
 
