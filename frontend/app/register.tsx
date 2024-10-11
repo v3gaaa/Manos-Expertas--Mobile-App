@@ -59,7 +59,11 @@ const Register: React.FC = () => {
       const response = await signUp(newUser);
 
       if (response && response.token) {
+            //Async Storage cleanup
+        await AsyncStorage.removeItem('authToken');
+        await AsyncStorage.removeItem('user');
         await AsyncStorage.setItem('authToken', response.token);
+        await AsyncStorage.setItem('user', JSON.stringify(response.user));
         Alert.alert('Éxito', 'Usuario registrado exitosamente');
         navigation.navigate('Home');
       } else {
