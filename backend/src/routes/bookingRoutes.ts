@@ -91,4 +91,32 @@ router.get('/bookings/availability/:workerId', async (req, res) => {
   }
 });
 
+
+
+// Update booking status
+router.put('/bookings/:bookingId/status', async (req: Request, res: Response) => {
+  try {
+    const { bookingId } = req.params;
+    const { status } = req.body;
+
+    // Validate the status
+    if (!['pending', 'confirmed', 'completed', 'cancelled'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      bookingId,
+      { status },
+      { new: true }
+    );
+
+    if (!updatedBooking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    res.json(updatedBooking);
+  } catch (error) {
+    res.status(500).json({ message: (error as Error).message });
+  }
+});
 export default router;

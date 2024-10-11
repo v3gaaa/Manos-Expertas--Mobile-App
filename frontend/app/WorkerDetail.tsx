@@ -1,12 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, Alert, TouchableOpacity, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { IWorker } from '../components/types';
-import { getWorkerById } from '../utils/apiHelper';
 import { Feather } from '@expo/vector-icons';
+import { getWorkerById, getWorkerAverageRating, getWorkerReviewCount } from '../utils/apiHelper';
 import { Theme } from '../constants/theme';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
+
+interface IWorker {
+  _id: string;
+  name: string;
+  lastName: string;
+  profession: string;
+  profilePicture: string;
+  description: string;
+  reviews: Array<{
+    user: { name: string };
+    rating: number;
+    comment: string;
+  }>;
+}
 
 export default function WorkerDetail() {
   const route = useRoute();
@@ -14,16 +27,26 @@ export default function WorkerDetail() {
   const { workerId } = route.params as { workerId: string };
   const [workerData, setWorkerData] = useState<IWorker | null>(null);
   const [loading, setLoading] = useState(true);
+  const [averageRating, setAverageRating] = useState<number>(0);
+  const [reviewCount, setReviewCount] = useState<number>(0);
 
   useEffect(() => {
-    const fetchWorker = async () => {
+    const fetchWorkerData = async () => {
       try {
-        const worker = await getWorkerById(workerId);
+        const [worker, rating, reviews] = await Promise.all([
+          getWorkerById(workerId),
+          getWorkerAverageRating(workerId),
+          getWorkerReviewCount(workerId)
+        ]);
+
         if (!worker) {
           Alert.alert('Error', 'Trabajador no encontrado');
           return;
         }
+
         setWorkerData(worker);
+        setAverageRating(rating?.averageRating || 0);
+        setReviewCount(reviews?.count || 0);
       } catch (error) {
         console.error(error);
         Alert.alert('Error', 'Ocurrió un problema al intentar obtener los datos del trabajador');
@@ -31,8 +54,40 @@ export default function WorkerDetail() {
         setLoading(false);
       }
     };
-    fetchWorker();
+
+    fetchWorkerData();
   }, [workerId]);
+
+  const renderStars = (rating: number) => {
+    return Array(5).fill(0).map((_, i) => (
+      <Feather 
+        key={i} 
+        name={i < Math.floor(rating) ? "star" : "star"}
+        size={16} 
+        color={i < Math.floor(rating) ? Theme.colors.bamxYellow : Theme.colors.bamxGrey} 
+      />
+    ));
+  };
+
+  const renderReviews = () => {
+    if (!workerData?.reviews || workerData.reviews.length === 0) {
+      return (
+        <Text style={styles.noReviewsText}>Este trabajador aún no tiene reseñas.</Text>
+      );
+    }
+
+    return workerData.reviews.map((review, index) => (
+      <View key={index} style={styles.reviewContainer}>
+        <View style={styles.reviewHeader}>
+          <Text style={styles.reviewerName}>{review.user.name}</Text>
+          <View style={styles.ratingContainer}>
+            {renderStars(review.rating)}
+          </View>
+        </View>
+        <Text style={styles.reviewComment}>{review.comment}</Text>
+      </View>
+    ));
+  };
 
   if (loading) {
     return (
@@ -55,17 +110,19 @@ export default function WorkerDetail() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Feather name="arrow-left" size={24} color={Theme.colors.black} />
+            <Feather name="arrow-left" size={24} color={Theme.colors.white} />
           </TouchableOpacity>
           <Image 
-            source={{ uri: workerData.profilePicture || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.basiclines.com%2Fwp-content%2Fuploads%2F2019%2F01%2Fblank-user.jpg&f=1&nofb=1&ipt=ca5e2c2b13f2cf4fb7ec7284dd85147bf639caab21a1a44c81aa07b30eab197e&ipo=images' }} 
+            source={{ uri: workerData.profilePicture || 'https://example.com/default-profile.jpg' }} 
             style={styles.image} 
           />
           <Text style={styles.name}>{`${workerData.name} ${workerData.lastName}`}</Text>
           <Text style={styles.profession}>{workerData.profession}</Text>
           <View style={styles.ratingContainer}>
-            <Feather name="star" size={16} color="#FFD33C" />
-            <Text style={styles.ratingText}>5.0 (332 reviews)</Text>
+            {renderStars(averageRating)}
+            <Text style={styles.ratingText}>
+              {averageRating.toFixed(1)} ({reviewCount} {reviewCount === 1 ? 'reseña' : 'reseñas'})
+            </Text>
           </View>
         </View>
 
@@ -73,27 +130,18 @@ export default function WorkerDetail() {
           <Text style={styles.sectionTitle}>Acerca de</Text>
           <Text style={styles.description}>{workerData.description}</Text>
 
-          <Text style={styles.sectionTitle}>Experiencia</Text>
-          <Text style={styles.experienceText}>{workerData.experience || 'No especificada'}</Text>
-
-          <Text style={styles.sectionTitle}>Especialidades</Text>
-          <View style={styles.specialtiesContainer}>
-            {workerData.specialties && workerData.specialties.map((specialty, index) => (
-              <View key={index} style={styles.specialtyTag}>
-                <Text style={styles.specialtyText}>{specialty}</Text>
-              </View>
-            ))}
-          </View>
+          <Text style={styles.sectionTitle}>Reseñas</Text>
+          {renderReviews()}
         </View>
-
-        <TouchableOpacity 
-          style={styles.calendarButton} 
-          onPress={() => navigation.navigate('CalendarAvailability', { workerId: workerData._id })}
-        >
-          <Feather name="calendar" size={24} color={Theme.colors.white} />
-          <Text style={styles.calendarButtonText}>Agendar cita</Text>
-        </TouchableOpacity>
       </ScrollView>
+      
+      <TouchableOpacity 
+        style={styles.calendarButton} 
+        onPress={() => navigation.navigate('CalendarAvailability', { workerId: workerData._id })}
+      >
+        <Feather name="calendar" size={24} color={Theme.colors.white} />
+        <Text style={styles.calendarButtonText}>Agendar cita</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -126,7 +174,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   header: {
-    backgroundColor: Theme.colors.bamxYellow,
+    backgroundColor: Theme.colors.bamxGreen,
     paddingTop: spacing * 6,
     paddingBottom: spacing * 3,
     paddingHorizontal: spacing * 2,
@@ -152,28 +200,28 @@ const styles = StyleSheet.create({
   name: {
     fontSize: Theme.size.xl,
     fontFamily: fonts.PoppinsSemiBold,
-    color: Theme.colors.black,
+    color: Theme.colors.white,
     marginBottom: spacing / 2,
   },
   profession: {
     fontSize: Theme.size.md,
     fontFamily: fonts.PoppinsMedium,
-    color: Theme.colors.black,
+    color: Theme.colors.white,
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: spacing,
-    backgroundColor: Theme.colors.white,
-    paddingHorizontal: spacing,
-    paddingVertical: spacing / 2,
-    borderRadius: spacing,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: spacing * 1.5,
+    paddingVertical: spacing,
+    borderRadius: spacing * 1.5,
   },
   ratingText: {
-    marginLeft: spacing / 2,
+    marginLeft: spacing,
     fontSize: Theme.size.sm,
-    fontFamily: fonts.PoppinsMedium,
-    color: Theme.colors.black,
+    fontFamily: fonts.PoppinsSemiBold,
+    color: Theme.colors.white,
   },
   infoContainer: {
     padding: spacing * 2,
@@ -191,28 +239,40 @@ const styles = StyleSheet.create({
     color: Theme.colors.black,
     lineHeight: 24,
   },
-  experienceText: {
-    fontSize: Theme.size.md,
-    fontFamily: fonts.PoppinsRegular,
-    color: Theme.colors.black,
-  },
-  specialtiesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: spacing,
-  },
-  specialtyTag: {
-    backgroundColor: Theme.colors.bamxGreen,
-    paddingHorizontal: spacing,
-    paddingVertical: spacing / 2,
+  reviewContainer: {
+    backgroundColor: Theme.colors.white,
     borderRadius: spacing,
-    marginRight: spacing,
+    padding: spacing,
     marginBottom: spacing,
+    elevation: 2,
+    shadowColor: Theme.colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  specialtyText: {
-    color: Theme.colors.white,
+  reviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing / 2,
+  },
+  reviewerName: {
     fontFamily: fonts.PoppinsMedium,
     fontSize: Theme.size.sm,
+    color: Theme.colors.black,
+  },
+  reviewComment: {
+    fontFamily: fonts.PoppinsRegular,
+    fontSize: Theme.size.sm,
+    color: Theme.colors.black,
+    marginTop: spacing / 2,
+  },
+  noReviewsText: {
+    fontFamily: fonts.PoppinsItalic,
+    fontSize: Theme.size.sm,
+    color: Theme.colors.bamxGrey,
+    textAlign: 'center',
+    marginTop: spacing,
   },
   calendarButton: {
     flexDirection: 'row',
@@ -222,9 +282,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing * 1.5,
     paddingHorizontal: spacing * 2,
     borderRadius: spacing * 3,
-    marginHorizontal: spacing * 2,
-    marginTop: spacing * 2,
-    marginBottom: spacing * 4,
+    margin: spacing * 2,
   },
   calendarButtonText: {
     color: Theme.colors.white,

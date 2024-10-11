@@ -28,6 +28,13 @@ export interface IUser{
       zipCode: string;
     };
     description: string;
+    reviews?: Array<{
+      user: {
+        name: string;
+      };
+      rating: number;
+      comment: string;
+    }>;  
     createdAt: Date;
     updatedAt: Date;
   }
