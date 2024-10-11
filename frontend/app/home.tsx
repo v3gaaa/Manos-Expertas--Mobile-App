@@ -137,6 +137,7 @@ export default function Home() {
     setRefreshing(true);
     try {
       await Promise.all([
+        loadUser(),
         fetchProfessions(),
         fetchWorkers(),
         fetchBookings()
@@ -146,7 +147,7 @@ export default function Home() {
     } finally {
       setRefreshing(false);
     }
-  }, [fetchProfessions, fetchWorkers, fetchBookings]);
+  }, [loadUser, fetchProfessions, fetchWorkers, fetchBookings]);
 
   useEffect(() => {
     loadUser();
@@ -193,6 +194,10 @@ export default function Home() {
     </TouchableOpacity>
   );
 
+  const handleProfilePress = () => {
+    navigation.navigate('UserProfile');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={Theme.colors.bamxYellow} />
@@ -204,15 +209,17 @@ export default function Home() {
         <View style={styles.header}>
           {userData && (
             <View style={styles.profileContainer}>
-              <Image 
-                source={{ 
-                  uri: userData.profilePicture || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.basiclines.com%2Fwp-content%2Fuploads%2F2019%2F01%2Fblank-user.jpg&f=1&nofb=1&ipt=ca5e2c2b13f2cf4fb7ec7284dd85147bf639caab21a1a44c81aa07b30eab197e&ipo=images' 
-                }} 
-                style={styles.profileImage} 
-              />
+              <TouchableOpacity onPress={handleProfilePress}>
+                <Image 
+                  source={{ 
+                    uri: userData.profilePicture || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.basiclines.com%2Fwp-content%2Fuploads%2F2019%2F01%2Fblank-user.jpg&f=1&nofb=1&ipt=ca5e2c2b13f2cf4fb7ec7284dd85147bf639caab21a1a44c81aa07b30eab197e&ipo=images' 
+                  }} 
+                  style={styles.profileImage} 
+                />
+              </TouchableOpacity>
               <View style={styles.headerText}>
                 <Text style={styles.greeting}>Hola, bienvenido 🎉</Text>
-                <Text style={styles.userName}>{userData.name} {userData.lastName}</Text>
+                <Text style={styles.userName}>{userData.name}</Text>
               </View>
               <TouchableOpacity style={styles.iconButton}>
                 <Bell color={Theme.colors.black} size={24} />
@@ -407,9 +414,7 @@ const styles = {
   },
   scheduleButton: {
     backgroundColor: Theme.colors.bamxRed,
-    paddingHorizontal: spacing * 
-
- 3,
+    paddingHorizontal: spacing * 3,
     paddingVertical: spacing,
     borderRadius: spacing,
   },

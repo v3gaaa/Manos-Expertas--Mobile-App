@@ -1,16 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, Platform, StyleSheet, View, Text, SafeAreaView, Alert, KeyboardAvoidingView, Image, TouchableOpacity } from 'react-native';
+import {
+  ScrollView,
+  Platform,
+  StyleSheet,
+  View,
+  Text,
+  SafeAreaView,
+  Alert,
+  KeyboardAvoidingView,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator
+} from 'react-native';
+import { getUserByEmail, updateUser, uploadImage } from '../utils/apiHelper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
+
 import Footer from '../components/footer';
 import AppTextInput from '../components/appTextInput';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getUserByEmail, updateUser, uploadImage } from '../utils/apiHelper';
-import { IUser } from '../utils/apiHelper';
 import { Theme } from '../constants/theme';
 import fonts from '../constants/fonts';
 import spacing from '../constants/spacing';
-import { icons } from '../constants/icons';
-import * as ImagePicker from 'expo-image-picker';
-import { Cloudinary } from "@cloudinary/url-gen";
+
+interface IUser {
+  name: string;
+  lastName: string;
+  email: string;
+  password: string;
+  phoneNumber: string;
+  profilePicture: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  admin: boolean;
+  salt: string;
+}
 
 const UserProfile = () => {
   const [user, setUser] = useState<IUser>({
@@ -20,36 +48,32 @@ const UserProfile = () => {
     password: '',
     phoneNumber: '',
     profilePicture: '',
-    address: {
-      street: '',
-      city: '',
-      state: '',
-      zipCode: ''
-    },
+    address: { street: '', city: '', state: '', zipCode: '' },
     admin: false,
     salt: '',
   });
   const [loading, setLoading] = useState(true);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const storedUser = await AsyncStorage.getItem('user');
-        if (storedUser) {
-          const userData = JSON.parse(storedUser);
-          const userProfile = await getUserByEmail(userData.email);
-          if (userProfile) setUser(userProfile);
-        }
-      } catch (error) {
-        console.error('Error loading user profile:', error);
-        Alert.alert('Error', 'Could not load user profile.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadUser();
   }, []);
+
+  const loadUser = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem('user');
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        const userProfile = await getUserByEmail(userData.email);
+        if (userProfile) setUser(userProfile);
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+      Alert.alert('Error', 'Could not load user profile.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleUpdateProfile = async () => {
     try {
@@ -65,9 +89,9 @@ const UserProfile = () => {
   };
 
   const handleImageUpload = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
-    if (permissionResult.granted === false) {
+    if (status !== 'granted') {
       Alert.alert('Permission required', 'Please allow access to your photo library to upload an image.');
       return;
     }
@@ -82,137 +106,186 @@ const UserProfile = () => {
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const imageUri = result.assets[0].uri;
       try {
+        setUploadingImage(true);
         const cloudinaryUrl = await uploadImage(imageUri);
         if (cloudinaryUrl) {
-          setUser(prevUser => ({
-            ...prevUser,
-            profilePicture: cloudinaryUrl
-          }));
+          setUser(prevUser => ({ ...prevUser, profilePicture: cloudinaryUrl }));
         }
       } catch (error) {
         console.error('Error uploading image:', error);
         Alert.alert('Error', 'Failed to upload image. Please try again.');
+      } finally {
+        setUploadingImage(false);
       }
     }
   };
 
   if (loading) {
-    return <Text>Loading...</Text>;
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView 
-        style={{ flex: 1 }}
+        style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={styles.scrollView} keyboardShouldPersistTaps="handled">
           <View style={styles.container}>
-            
-            {/* Profile Picture */}
             <View style={styles.profilePictureContainer}>
               <Image 
                 source={{ uri: user.profilePicture || 'https://via.placeholder.com/150' }} 
                 style={styles.profilePicture} 
               />
-              <TouchableOpacity style={styles.editIcon} onPress={handleImageUpload}>
-                {icons.Image(24, Theme.colors.bamxYellow)}
+              {uploadingImage && (
+                <View style={styles.uploadingOverlay}>
+                  <ActivityIndicator size="large" color={Theme.colors.bamxYellow} />
+                </View>
+              )}
+              <TouchableOpacity style={styles.editIcon} onPress={handleImageUpload} disabled={uploadingImage}>
+                <Ionicons name="camera" size={24} color={Theme.colors.bamxYellow} />
               </TouchableOpacity>
             </View>
 
-            {/* Name and Last Name in two columns */}
-            <View style={styles.row}>
-              <View style={styles.column}>
-                <Text style={styles.label}>{icons.User(20, Theme.colors.bamxGreen)} Name:</Text>
-                <AppTextInput
-                  placeholder="Name"
-                  value={user.name}
-                  onChangeText={(text) => setUser({ ...user, name: text })}
-                />
+            <View style={styles.formContainer}>
+              <View style={styles.row}>
+                <View style={styles.column}>
+                  <Text style={styles.label}>Name</Text>
+                  <AppTextInput
+                    placeholder="Name"
+                    value={user.name}
+                    onChangeText={(text) => setUser({ ...user, name: text })}
+                  />
+                </View>
+                <View style={styles.column}>
+                  <Text style={styles.label}>Last Name</Text>
+                  <AppTextInput
+                    placeholder="Last Name"
+                    value={user.lastName}
+                    onChangeText={(text) => setUser({ ...user, lastName: text })}
+                  />
+                </View>
               </View>
-              <View style={styles.column}>
-                <Text style={styles.label}>{icons.UserTie(20, Theme.colors.bamxGreen)} Last Name:</Text>
-                <AppTextInput
-                  placeholder="Last Name"
-                  value={user.lastName}
-                  onChangeText={(text) => setUser({ ...user, lastName: text })}
-                />
+
+              <Text style={styles.label}>Phone Number</Text>
+              <AppTextInput
+                placeholder="Phone Number"
+                value={user.phoneNumber}
+                onChangeText={(text) => setUser({ ...user, phoneNumber: text })}
+                keyboardType="phone-pad"
+              />
+
+              <Text style={styles.sectionTitle}>Address</Text>
+              <AppTextInput
+                placeholder="Street"
+                value={user.address.street}
+                onChangeText={(text) => setUser({ ...user, address: { ...user.address, street: text } })}
+              />
+              <AppTextInput
+                placeholder="City"
+                value={user.address.city}
+                onChangeText={(text) => setUser({ ...user, address: { ...user.address, city: text } })}
+              />
+              <View style={styles.row}>
+                <View style={styles.column}>
+                  <AppTextInput
+                    placeholder="State"
+                    value={user.address.state}
+                    onChangeText={(text) => setUser({ ...user, address: { ...user.address, state: text } })}
+                  />
+                </View>
+                <View style={styles.column}>
+                  <AppTextInput
+                    placeholder="Zip Code"
+                    value={user.address.zipCode}
+                    onChangeText={(text) => setUser({ ...user, address: { ...user.address, zipCode: text } })}
+                    keyboardType="numeric"
+                  />
+                </View>
               </View>
             </View>
 
-            {/* Phone Number */}
-            <Text style={styles.label}>{icons.Phone(20, Theme.colors.bamxGreen)} Phone Number:</Text>
-            <AppTextInput
-              placeholder="Phone Number"
-              value={user.phoneNumber}
-              onChangeText={(text) => setUser({ ...user, phoneNumber: text })}
-              keyboardType="phone-pad"
-            />
-
-            {/* Address Fields */}
-            <Text style={styles.label}>{icons.Road(20, Theme.colors.green)} Street:</Text>
-            <AppTextInput
-              placeholder="Street"
-              value={user.address.street}
-              onChangeText={(text) => setUser({ ...user, address: { ...user.address, street: text } })}
-            />
-            <Text style={styles.label}>{icons.LocationCity(20, Theme.colors.green)} City:</Text>
-            <AppTextInput
-              placeholder="City"
-              value={user.address.city}
-              onChangeText={(text) => setUser({ ...user, address: { ...user.address, city: text } })}
-            />
-            <Text style={styles.label}>{icons.HomeCity(20, Theme.colors.green)} State:</Text>
-            <AppTextInput
-              placeholder="State"
-              value={user.address.state}
-              onChangeText={(text) => setUser({ ...user, address: { ...user.address, state: text } })}
-            />
-            <Text style={styles.label}>{icons.Pin(20, Theme.colors.green)} Zip Code:</Text>
-            <AppTextInput
-              placeholder="Zip Code"
-              value={user.address.zipCode}
-              onChangeText={(text) => setUser({ ...user, address: { ...user.address, zipCode: text } })}
-            />
-
-            {/* Update Profile Button */}
             <TouchableOpacity style={styles.updateButton} onPress={handleUpdateProfile}>
               <Text style={styles.updateButtonText}>Update Profile</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
-        <View style={styles.footerContainer}>
-          <Footer />
-        </View>
+        <Footer />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: Theme.colors.bgColor,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollView: {
+    flexGrow: 1,
+  },
   container: {
     flex: 1,
-    padding: 16,
+    padding: spacing * 2,
+  },
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
-    backgroundColor: Theme.colors.bgColor,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontFamily: fonts.PoppinsMedium,
+    fontSize: Theme.size.md,
+    color: Theme.colors.bamxGreen,
   },
   profilePictureContainer: {
     alignItems: 'center',
-    marginBottom: spacing * 2,
+    marginBottom: spacing * 3,
   },
   profilePicture: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 3,
+    borderColor: Theme.colors.bamxYellow,
+  },
+  uploadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   editIcon: {
     position: 'absolute',
-    right: 10,
-    bottom: 10,
+    right: -5,
+    bottom: -5,
     backgroundColor: Theme.colors.white,
-    borderRadius: 50,
-    padding: 5,
+    borderRadius: 20,
+    padding: 8,
+    borderWidth: 2,
+    borderColor: Theme.colors.bamxYellow,
+  },
+  formContainer: {
+    backgroundColor: Theme.colors.white,
+    borderRadius: spacing * 2,
+    padding: spacing * 2,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   row: {
     flexDirection: 'row',
@@ -226,27 +299,36 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: fonts.PoppinsMedium,
     fontSize: Theme.size.sm,
-    color: Theme.colors.black,
+    color: Theme.colors.bamxGreen,
     marginBottom: spacing / 2,
+  },
+  sectionTitle: {
+    fontFamily: fonts.PoppinsSemiBold,
+    fontSize: Theme.size.md,
+    color: Theme.colors.bamxGreen,
+    marginTop: spacing * 2,
+    marginBottom: spacing,
   },
   updateButton: {
     backgroundColor: Theme.colors.bamxYellow,
-    padding: spacing,
+    padding: spacing * 1.5,
     borderRadius: spacing,
     alignItems: 'center',
-    marginVertical: spacing * 2,
+    marginTop: spacing * 3,
     marginBottom: spacing * 4,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   updateButtonText: {
     fontFamily: fonts.PoppinsSemiBold,
     color: Theme.colors.white,
-    fontSize: Theme.size.sm,
-  },
-  footerContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    fontSize: Theme.size.md,
   },
 });
 
