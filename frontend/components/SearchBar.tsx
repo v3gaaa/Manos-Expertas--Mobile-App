@@ -18,10 +18,10 @@ const SearchBar: FC<SearchBarProps> = ({ searchText, setSearchText, handleSearch
       <TextInput
         style={styles.searchInput}
         placeholder="Busca trabajos o trabajadores..."
-        placeholderTextColor="rgba(0, 0, 0, 0.61)" // Updated to match Figma
+        placeholderTextColor="rgba(0, 0, 0, 0.61)"
         value={searchText}
         onChangeText={setSearchText}
-        onSubmitEditing={handleSearch} // Executes search when the user submits
+        onSubmitEditing={handleSearch}
       />
       <TouchableOpacity onPress={handleSearch} style={styles.searchButton}>
         <AntDesign name="arrowright" size={20} color={Theme.colors.black} />

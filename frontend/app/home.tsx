@@ -240,7 +240,7 @@ export default function Home() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Trabajadores</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('SearchScreen', { query: "all" })}>
+          <TouchableOpacity onPress={() => navigation.navigate('SearchScreen', { query: "todos" })}>
             <Text style={styles.viewAllButton}>Ver Todo</Text>
           </TouchableOpacity>
         </View>
@@ -252,6 +252,7 @@ export default function Home() {
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.workerGrid}
+          ItemSeparatorComponent={() => <View style={{ width: spacing }} />}
         />
 
         <View style={styles.sectionHeader}>
