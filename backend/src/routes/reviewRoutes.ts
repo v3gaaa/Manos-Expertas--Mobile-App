@@ -111,8 +111,13 @@ router.get('/reviews/worker/:workerId/count', async (req: Request, res: Response
 
 // Get workers with highest/lowest ratings
 router.get('/reviews/workers/:sortOrder(highest|lowest)-rated', async (req: Request, res: Response) => {
-    const sortOrder = req.params.sortOrder === 'highest' ? -1 : 1;
-    console.log(`Fetching ${req.params.sortOrder}-rated workers`);
+    const sortOrderParam = req.params.sortOrder;
+    const sortOrder = sortOrderParam === 'highest' ? -1 : 1;
+    if (sortOrderParam !== 'highest' && sortOrderParam !== 'lowest') {
+        console.error('Invalid sortOrder parameter:', sortOrderParam);
+        return res.status(400).json({ message: 'Invalid sortOrder parameter' });
+    }
+    console.log(`Fetching ${sortOrderParam}-rated workers`);
     try {
         const workers = await Review.aggregate([
             {
@@ -137,10 +142,10 @@ router.get('/reviews/workers/:sortOrder(highest|lowest)-rated', async (req: Requ
             }
         ]);
 
-        console.log(`${req.params.sortOrder}-rated workers fetched:`, workers.length);
+        console.log(`${sortOrderParam}-rated workers fetched:`, workers.length);
         res.json(workers);
     } catch (error) {
-        console.error(`Error fetching ${req.params.sortOrder}-rated workers:`, error);
+        console.error(`Error fetching ${sortOrderParam}-rated workers:`, error);
         res.status(500).json({ message: (error as Error).message });
     }
 });
