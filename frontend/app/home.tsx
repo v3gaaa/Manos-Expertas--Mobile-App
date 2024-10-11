@@ -184,7 +184,6 @@ export default function Home() {
         lastName={item.worker.lastName}
         profession={item.worker.profession}
         date={new Date(item.startDate).toLocaleDateString()}
-        reviews={item.worker.reviews || 0}
         rating={item.worker.rating || 0}
       />
     </TouchableOpacity>

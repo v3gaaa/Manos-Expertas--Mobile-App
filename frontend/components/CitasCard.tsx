@@ -29,7 +29,7 @@ const CitasCard = ({ name, lastName, profession, date, reviews, rating }: CitasC
       </View>
       <View style={styles.ratingContainer}>
         {icons.StarFull(16, '#FFD33C')}
-        <Text style={styles.rating}>{`${rating} (${reviews} reviews)`}</Text>
+        <Text style={styles.rating}>{`${rating}`}</Text>
       </View>
     </View>
   );
