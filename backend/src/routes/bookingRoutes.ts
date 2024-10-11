@@ -121,7 +121,7 @@ router.put('/bookings/:bookingId/status', async (req: Request, res: Response) =>
 
     const updatedBooking = await Booking.findByIdAndUpdate(
       bookingId,
-      { status },
+      { status: { $eq: status } },
       { new: true }
     );
 
