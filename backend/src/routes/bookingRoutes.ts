@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import Booking from '../models/Booking';
 import Worker from '../models/Worker';
 import rateLimit from 'express-rate-limit';
@@ -27,7 +28,11 @@ router.get('/bookings', async (_req: Request, res: Response) => {
 //Obtener una reserva por su id
 router.get('/bookings/:bookingId', async (req, res) => {
   try {
-    const booking = await Booking.findById(req.params.bookingId).populate('worker').populate('user');
+    const { bookingId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+      return res.status(400).json({ message: 'Invalid booking ID' });
+    }
+    const booking = await Booking.findOne({ _id: { $eq: bookingId } }).populate('worker').populate('user');
     res.json(booking);
   } catch (error) {
     res.status(500).json({ message: (error as Error).message });
