@@ -101,7 +101,7 @@ router.get('/reviews/worker/:workerId/count', async (req: Request, res: Response
         }
 
         const count = await Review.countDocuments({ worker: new mongoose.Types.ObjectId(workerId) });
-        console.log(`Review count for worker ${workerId}:`, count);
+        console.log('Review count for worker %s:', workerId, count);
         res.json({ workerId, count });
     } catch (error) {
         console.error('Error fetching review count:', error);
