@@ -81,7 +81,7 @@ router.get('/reviews/worker/:workerId/average-rating', async (req: Request, res:
             averageRating: result.length > 0 ? Number(result[0].averageRating.toFixed(1)) : 0
         };
         
-        console.log(`Average rating for worker ${workerId}:`, response.averageRating);
+        console.log('Average rating for worker %s:', workerId, response.averageRating);
         res.json(response);
     } catch (error) {
         console.error('Error fetching average rating:', error);
