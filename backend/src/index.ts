@@ -37,9 +37,6 @@ mongoose.connect(process.env.MONGO_URI || '')
     const client = mongoose.connection.getClient();
     const dbase = client.db('ManosExpertas');
 
-    const bucket = new mongoose.mongo.GridFSBucket(dbase, { bucketName: 'uploads' });
-    
-    app.use('/api', uploadRoutes(bucket));
   })
   .catch(err => console.error('Failed to connect to MongoDB', err));
 
@@ -48,6 +45,7 @@ app.use('/api', userRoutes);
 app.use('/api', workerRoutes);
 app.use('/api', bookingRoutes);
 app.use('/api', reviewRoutes);
+app.use('/api', uploadRoutes);
 
 //Main route
 app.get('/api', (req: Request, res: Response) => {

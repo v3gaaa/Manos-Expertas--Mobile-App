@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, Platform, StyleSheet, View, Text, SafeAreaView, Button, Alert, KeyboardAvoidingView, Image, TouchableOpacity } from 'react-native';
+import { ScrollView, Platform, StyleSheet, View, Text, SafeAreaView, Alert, KeyboardAvoidingView, Image, TouchableOpacity } from 'react-native';
 import Footer from '../components/footer';
 import AppTextInput from '../components/appTextInput';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getUserByEmail, updateUser } from '../utils/apiHelper';
+import { getUserByEmail, updateUser, uploadImage } from '../utils/apiHelper';
 import { IUser } from '../utils/apiHelper';
 import { Theme } from '../constants/theme';
 import fonts from '../constants/fonts';
 import spacing from '../constants/spacing';
-import { icons } from '../constants/icons';  // Import icons
+import { icons } from '../constants/icons';
+import * as ImagePicker from 'expo-image-picker';
+import { Cloudinary } from "@cloudinary/url-gen";
 
 const UserProfile = () => {
   const [user, setUser] = useState<IUser>({
     name: '',
     lastName: '',
-    email: '',  // Required for IUser but not displayed/modified
-    password: '',  // Required for IUser but not displayed/modified
+    email: '',
+    password: '',
     phoneNumber: '',
     profilePicture: '',
     address: {
@@ -24,8 +26,8 @@ const UserProfile = () => {
       state: '',
       zipCode: ''
     },
-    admin: false,  // Required for IUser but not displayed/modified
-    salt: '',  // Required for IUser but not displayed/modified
+    admin: false,
+    salt: '',
   });
   const [loading, setLoading] = useState(true);
 
@@ -51,14 +53,46 @@ const UserProfile = () => {
 
   const handleUpdateProfile = async () => {
     try {
-      const updatedUser = await updateUser(user); // Call the API to update
+      const updatedUser = await updateUser(user);
       if (updatedUser) {
-        await AsyncStorage.setItem('user', JSON.stringify(updatedUser)); // Update stored user
+        await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
         Alert.alert('Success', 'User profile updated successfully.');
       }
     } catch (error) {
       console.error('Error updating profile:', error);
       Alert.alert('Error', 'Could not update profile.');
+    }
+  };
+
+  const handleImageUpload = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission required', 'Please allow access to your photo library to upload an image.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const imageUri = result.assets[0].uri;
+      try {
+        const cloudinaryUrl = await uploadImage(imageUri);
+        if (cloudinaryUrl) {
+          setUser(prevUser => ({
+            ...prevUser,
+            profilePicture: cloudinaryUrl
+          }));
+        }
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        Alert.alert('Error', 'Failed to upload image. Please try again.');
+      }
     }
   };
 
@@ -82,7 +116,7 @@ const UserProfile = () => {
                 source={{ uri: user.profilePicture || 'https://via.placeholder.com/150' }} 
                 style={styles.profilePicture} 
               />
-              <TouchableOpacity style={styles.editIcon}>
+              <TouchableOpacity style={styles.editIcon} onPress={handleImageUpload}>
                 {icons.Image(24, Theme.colors.bamxYellow)}
               </TouchableOpacity>
             </View>

@@ -263,40 +263,35 @@ export async function createWorker(worker: IWorker) {
   }
 }
 
-// Función para subir una imagen
 export async function uploadImage(uri: string): Promise<string | null> {
   const formData = new FormData();
   const fileName = uri.split('/').pop();
-  const type = `image/${fileName?.split('.').pop()}`; 
+  const fileType = 'image/' + uri.split('.').pop();
+
+  formData.append('file', {
+    uri,
+    name: fileName,
+    type: fileType,
+  } as any);
 
   try {
-      const response = await fetch(uri);
-      if (!response.ok) {
-          throw new Error('Failed to fetch image');
-      }
-      
-      const blob = await response.blob(); 
+    const response = await fetch(`${API_URL}/upload`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
 
-      formData.append('file', blob, fileName); 
+    if (!response.ok) {
+      throw new Error('Failed to upload image');
+    }
 
-      const uploadResponse = await fetch(`${API_URL}/upload`, {
-          method: 'POST',
-          body: formData,
-      });
-
-      if (!uploadResponse.ok) {
-          const errorData = await uploadResponse.json();
-          throw new Error(errorData.message || 'Failed to upload image');
-      }
-
-      const data = await uploadResponse.json();
-      
-      const imageUrl = `${API_URL}/files/${data.fileId}`; 
-      
-      return imageUrl; 
+    const data = await response.json();
+    return data.url; // This now returns the Cloudinary secure_url
   } catch (error) {
-      console.error('Error uploading image:', error);
-      return null;
+    console.error('Error uploading image:', error);
+    return null;
   }
 }
 

@@ -85,7 +85,11 @@ export default function Home() {
           };
         })
       );
-      setWorkers(workersWithRatings);
+      // Ordenar trabajadores por rating de mayor a menor y tomar los primeros 10
+      const sortedWorkers = workersWithRatings
+        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+        .slice(0, 10);
+      setWorkers(sortedWorkers);
     } catch (error) {
       console.error('Error fetching worker ratings:', error);
     }
@@ -239,7 +243,7 @@ export default function Home() {
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Trabajadores</Text>
+          <Text style={styles.sectionTitle}>Top Trabajadores</Text>
           <TouchableOpacity onPress={() => navigation.navigate('SearchScreen', { query: "todos" })}>
             <Text style={styles.viewAllButton}>Ver Todo</Text>
           </TouchableOpacity>
