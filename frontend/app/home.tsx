@@ -11,6 +11,7 @@ import WorkerCard from '../components/WorkerCard';
 import CitasCard from '../components/CitasCard';
 import Footer from '../components/footer';
 import { Bell, Calendar } from 'lucide-react-native';
+import { getUnreadNotificationsCount } from '../utils/notificationService';
 
 interface Booking {
   _id: string;
@@ -48,6 +49,7 @@ export default function Home() {
   const [searchText, setSearchText] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation();
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   const loadUser = useCallback(async () => {
     try {
@@ -156,6 +158,19 @@ export default function Home() {
     fetchBookings();
   }, [loadUser, fetchProfessions, fetchWorkers, fetchBookings]);
 
+  useEffect(() => {
+    const loadUnreadCount = async () => {
+      const count = await getUnreadNotificationsCount();
+      setUnreadNotifications(count);
+    };
+
+    loadUnreadCount();
+    // Actualizar el contador cuando la pantalla obtiene el foco
+    const unsubscribe = navigation.addListener('focus', loadUnreadCount);
+    return unsubscribe;
+  }, [navigation]);
+
+
   const handleSearch = () => {
     if (searchText.trim() === '') {
       Alert.alert('Error', 'Por favor ingrese un término de búsqueda.');
@@ -166,6 +181,10 @@ export default function Home() {
 
   const handleBookingPress = (booking: Booking) => {
     navigation.navigate('BookingDetails', { bookingId: booking._id });
+  };
+
+  const handleNotificationsPress = () => {
+    navigation.navigate('Notifications');
   };
 
   const renderWorkerCard = ({ item }: { item: Worker }) => (
@@ -221,8 +240,20 @@ export default function Home() {
                 <Text style={styles.greeting}>Hola, bienvenido 🎉</Text>
                 <Text style={styles.userName}>{userData.name}</Text>
               </View>
-              <TouchableOpacity style={styles.iconButton}>
-                <Bell color={Theme.colors.black} size={24} />
+              <TouchableOpacity 
+                style={styles.iconButton}
+                onPress={handleNotificationsPress}
+              >
+                <View>
+                  <Bell color={Theme.colors.black} size={24} />
+                  {unreadNotifications > 0 && (
+                    <View style={styles.notificationBadge}>
+                      <Text style={styles.notificationBadgeText}>
+                        {unreadNotifications > 99 ? '99+' : unreadNotifications}
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </TouchableOpacity>
             </View>
           )}
@@ -426,5 +457,22 @@ const styles = {
   professionCarousel: {
     flexGrow: 0,
     height: spacing * 5,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    right: -6,
+    top: -6,
+    backgroundColor: Theme.colors.bamxRed,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 2,
+  },
+  notificationBadgeText: {
+    color: Theme.colors.white,
+    fontSize: Theme.size.xs,
+    fontFamily: fonts.PoppinsSemiBold,
   },
 };

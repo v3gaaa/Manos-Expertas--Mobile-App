@@ -28,6 +28,7 @@ export type RootStackParamList = {
   AllWorstWorkers: undefined;
   UserProfile: undefined;
   BookingDetails: { bookingId: string };
+  Notifications: undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =

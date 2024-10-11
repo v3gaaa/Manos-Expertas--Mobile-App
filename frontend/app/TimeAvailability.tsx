@@ -7,19 +7,30 @@ import { Theme } from '../constants/theme';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
 import { Feather } from '@expo/vector-icons';
+import { registerForPushNotificationsAsync, scheduleBookingNotification, sendNewBookingNotification } from '../utils/notificationService';
 
 export default function TimeAvailability() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { workerId, startDate, endDate } = route.params as { workerId: string; startDate: string; endDate: string };
+  const { workerId, startDate, endDate, workerName, workerLastName } = route.params as { 
+    workerId: string; 
+    startDate: string; 
+    endDate: string;
+    workerName: string;
+    workerLastName: string;
+  };
   
   const [hoursPerDay, setHoursPerDay] = useState<number>(1);
   const [userId, setUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const loadUserId = async () => {
+    const setup = async () => {
       try {
+        // Register for push notifications when component mounts
+        await registerForPushNotificationsAsync();
+        
+        // Load user data
         const user = await AsyncStorage.getItem('user');
         if (user) {
           const parsedUser = JSON.parse(user);
@@ -28,11 +39,12 @@ export default function TimeAvailability() {
           Alert.alert('Error', 'No se pudo obtener la información del usuario');
         }
       } catch (error) {
-        console.error('Error cargando el userId:', error);
-        Alert.alert('Error', 'Hubo un problema al cargar el usuario');
+        console.error('Error en la configuración:', error);
+        Alert.alert('Error', 'Hubo un problema al inicializar la aplicación');
       }
     };
-    loadUserId();
+    
+    setup();
   }, []);
 
   const handleHourSelect = (hours: number) => {
@@ -51,17 +63,40 @@ export default function TimeAvailability() {
       Alert.alert('Error', 'No se pudo obtener la información del usuario');
       return;
     }
-
+  
     setIsLoading(true);
     try {
-      await createBooking({
+      // Create the booking
+      const bookingResponse = await createBooking({
         worker: workerId,
         user: userId,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         hoursPerDay,
       });
-      navigation.navigate('BookingSuccess', { workerId, startDate, endDate, hoursPerDay });
+  
+      // Create a properly structured booking data object
+      const bookingData = {
+        _id: bookingResponse._id,
+        startDate,
+        worker: {
+          name: workerName,
+          lastName: workerLastName
+        }
+      };
+  
+      // Send both notifications with the proper data
+      await Promise.all([
+        sendNewBookingNotification(bookingData),
+        scheduleBookingNotification(bookingData)
+      ]);
+  
+      navigation.navigate('BookingSuccess', { 
+        workerId, 
+        startDate, 
+        endDate, 
+        hoursPerDay 
+      });
     } catch (error) {
       console.error('Error creando la reserva:', error);
       Alert.alert('Error', 'Hubo un problema al crear la reserva');
@@ -70,6 +105,7 @@ export default function TimeAvailability() {
     }
   };
 
+  // Rest of the component remains the same...
   const totalDays = getDaysBetweenDates(startDate, endDate);
 
   return (

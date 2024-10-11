@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator, Alert, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Text, ActivityIndicator, Alert, TouchableOpacity, ScrollView, SafeAreaView, Linking } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { getBookingById } from '../utils/apiHelper';
 import { Theme } from '../constants/theme';
@@ -30,6 +30,13 @@ const BookingDetails = () => {
 
     fetchBookingDetails();
   }, [bookingId]);
+
+  const openWhatsApp = (phoneNumber: string) => {
+    const url = `whatsapp://send?phone=${phoneNumber}`;
+    Linking.openURL(url).catch(() => {
+      Alert.alert('Error', 'No se pudo abrir WhatsApp');
+    });
+  };
 
   if (loading) {
     return (
@@ -89,7 +96,7 @@ const BookingDetails = () => {
 
         <TouchableOpacity
           style={styles.contactButton}
-          onPress={() => Alert.alert('Contacto', 'Función de contacto no implementada aún.')}
+          onPress={() => openWhatsApp(bookingDetails.worker.phoneNumber)}
         >
           <Feather name="phone" size={20} color={Theme.colors.white} />
           <Text style={styles.contactButtonText}>Contactar al Trabajador</Text>

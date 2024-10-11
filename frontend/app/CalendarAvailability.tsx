@@ -11,7 +11,11 @@ import { Feather } from '@expo/vector-icons';
 export default function CalendarAvailability() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { workerId } = route.params as { workerId: string };
+  const { workerId, workerName, workerLastName } = route.params as { 
+    workerId: string;
+    workerName: string;
+    workerLastName: string;
+  };
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [availableDates, setAvailableDates] = useState<{ [date: string]: { disabled: boolean } }>({});
@@ -136,10 +140,16 @@ export default function CalendarAvailability() {
       <TouchableOpacity 
         style={[styles.continueButton, (!startDate || !endDate) && styles.disabledButton]} 
         disabled={!startDate || !endDate || isLoading} 
-        onPress={() => navigation.navigate('TimeAvailability', { workerId, startDate, endDate })}
+        onPress={() => navigation.navigate('TimeAvailability', { 
+          workerId, 
+          startDate, 
+          endDate,
+          workerName,
+          workerLastName
+        })}
       >
         <Text style={styles.buttonText}>Continuar</Text>
-      </TouchableOpacity>
+  </TouchableOpacity>
     </SafeAreaView>
   );
 }

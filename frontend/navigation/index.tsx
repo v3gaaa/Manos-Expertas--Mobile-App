@@ -21,6 +21,7 @@ import AllWorstWorkers from "../app/allWorstWorkers";
 import EditWorkerSearch from "../app/editWorkerSearch";
 import UserProfile from "../app/UserProfile";
 import BookingDetails from "../app/BookingDetails";
+import Notifications from "../app/NotificationScreen";
 import { RootStackParamList } from "../types";
 
 const theme = {
@@ -77,6 +78,11 @@ const RootNavigator: React.FC = () => {
       <Stack.Screen 
         name="BookingDetails" 
         component={BookingDetails} 
+        options={{ headerShown: false, animationEnabled: false }}
+      />
+      <Stack.Screen 
+        name="Notifications" 
+        component={Notifications} 
         options={{ headerShown: false, animationEnabled: false }}
       />
     </Stack.Navigator>
