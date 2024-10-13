@@ -150,7 +150,7 @@ router.get('/users/email/:email', [
 
     try {
         console.log(`Fetching user by email: ${req.params.email}`);
-        const user = await User.findOne({ email: req.params.email });
+        const user = await User.findOne({ email: { $eq: req.params.email } });
         if (!user) return res.status(404).json({ message: 'User not found' });
         res.json(user);
     } catch (error) {
@@ -172,7 +172,7 @@ router.post('/login', [
     const { email, password } = req.body;
     try {
         console.log('Login attempt with body:', req.body);
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email: { $eq: email } });
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         // Hash the input password with the user's salt
