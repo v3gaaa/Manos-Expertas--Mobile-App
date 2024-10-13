@@ -11,7 +11,7 @@ const authMiddleware = (req: Request, res: Response, next: Function) => {
     const token = req.headers['authorization']?.split(' ')[1];
     if (!token) return res.status(403).send('Token is required');
 
-    jwt.verify(token, process.env.JWT_SECRET || 'defaultSecretKey', (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET || 'yourSuperSecretKey', (err, user) => {
         if (err) return res.status(403).send('Invalid token');
         req.user = user; // Attach user information to request object
         next();
@@ -180,10 +180,11 @@ router.post('/login', [
     }
 });
 
+// Token generation function
 function generateToken(user: IUser) {
-    // Generate a token using the user's ID and a secret key
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'defaultSecretKey', { expiresIn: '1h' });
-    return token;
+  // Generate a token using the user's ID and a secret key
+  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'yourSuperSecretKey', { expiresIn: '1h' });
+  return token;
 }
 
 // Create a new admin user
