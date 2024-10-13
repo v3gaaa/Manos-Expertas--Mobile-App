@@ -388,16 +388,18 @@ export async function editWorker(workerId: string, worker: IWorker) {
   }
 }
 
-// Verificar disponibilidad de un trabajador
-export async function checkWorkerAvailability(workerId: string, date: Date) {
+export async function checkWorkerAvailability(workerId: string, startDate: Date, endDate: Date) {
   try {
     const response = await axios.get(`${API_URL}/bookings/availability/${workerId}`, {
-      params: { date: date.toISOString() },
+      params: { 
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString()
+      },
     });
     return response.data;
   } catch (error) {
     console.error('Error checking availability:', error);
-    return { availableHours: 0 };  // Maneja error devolviendo 0 horas disponibles
+    throw error;  // Re-throw the error so it can be handled by the calling function
   }
 }
 

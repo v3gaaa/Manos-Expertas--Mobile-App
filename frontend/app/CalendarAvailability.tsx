@@ -18,7 +18,7 @@ export default function CalendarAvailability() {
   };
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
-  const [availableDates, setAvailableDates] = useState<{ [date: string]: { disabled: boolean } }>({});
+  const [availableDates, setAvailableDates] = useState<{ [date: string]: { disabled: boolean; textColor: string; color: string } }>({});
   const [isLoading, setIsLoading] = useState(true);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
@@ -26,29 +26,53 @@ export default function CalendarAvailability() {
     const checkAvailability = async () => {
       const today = new Date();
       const nextMonth = new Date(today.getFullYear(), today.getMonth() + 2, today.getDate());
-      let currentDate = today;
-      const newAvailableDates: { [date: string]: { disabled: boolean } } = {};
+      
+      try {
+        const response = await checkWorkerAvailability(workerId, today, nextMonth);
+        const newAvailableDates: { [date: string]: { disabled: boolean; textColor: string; color: string } } = {};
+        
+        Object.entries(response.availability).forEach(([date, isAvailable]) => {
+          newAvailableDates[date] = { 
+            disabled: !isAvailable,
+            textColor: isAvailable ? Theme.colors.black : Theme.colors.white,
+            color: isAvailable ? 'transparent' : Theme.colors.red
+          };
+        });
 
-      while (currentDate <= nextMonth) {
-        const availability = await checkWorkerAvailability(workerId, currentDate);
-        const dateString = currentDate.toISOString().split('T')[0];
-        newAvailableDates[dateString] = { disabled: availability.availableHours === 0 };
-        currentDate.setDate(currentDate.getDate() + 1);
+        setAvailableDates(newAvailableDates);
+        setIsLoading(false);
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }).start();
+      } catch (error) {
+        console.error('Error checking availability:', error);
+        setIsLoading(false);
       }
-
-      setAvailableDates(newAvailableDates);
-      setIsLoading(false);
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }).start();
     };
 
     checkAvailability();
   }, [workerId, fadeAnim]);
 
+  const isDateRangeAvailable = useCallback((start: string, end: string) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+      const dateString = d.toISOString().split('T')[0];
+      if (availableDates[dateString]?.disabled) {
+        return false;
+      }
+    }
+    return true;
+  }, [availableDates]);
+
   const handleDateSelect = useCallback((day: DateData) => {
+    if (availableDates[day.dateString]?.disabled) {
+      alert('Esta fecha no está disponible');
+      return;
+    }
+
     if (!startDate || (startDate && endDate)) {
       setStartDate(day.dateString);
       setEndDate(null);
@@ -56,18 +80,25 @@ export default function CalendarAvailability() {
       setStartDate(day.dateString);
       setEndDate(null);
     } else {
-      setEndDate(day.dateString);
+      if (isDateRangeAvailable(startDate, day.dateString)) {
+        setEndDate(day.dateString);
+      } else {
+        alert('El rango seleccionado incluye fechas no disponibles');
+        setStartDate(day.dateString);
+        setEndDate(null);
+      }
     }
-  }, [startDate, endDate]);
+  }, [startDate, endDate, availableDates, isDateRangeAvailable]);
 
   const getMarkedDates = useCallback(() => {
-    const marked: any = { ...availableDates };
+    const marked = { ...availableDates };
+    
     if (startDate) {
       marked[startDate] = { 
         ...marked[startDate],
         startingDay: true, 
         color: Theme.colors.bamxGreen,
-        textColor: Theme.colors.white 
+        textColor: Theme.colors.white,
       };
     }
     if (endDate) {
@@ -75,9 +106,10 @@ export default function CalendarAvailability() {
         ...marked[endDate],
         endingDay: true, 
         color: Theme.colors.bamxGreen,
-        textColor: Theme.colors.white 
+        textColor: Theme.colors.white,
       };
     }
+
     if (startDate && endDate) {
       let currentDate = new Date(startDate);
       const lastDate = new Date(endDate);
@@ -87,12 +119,13 @@ export default function CalendarAvailability() {
         if (dateString !== endDate) {
           marked[dateString] = { 
             ...marked[dateString],
-            color: Theme.colors.bamxGreen, 
-            textColor: Theme.colors.white 
+            color: Theme.colors.bamxGreen,
+            textColor: Theme.colors.white,
           };
         }
       }
     }
+
     return marked;
   }, [availableDates, startDate, endDate]);
 
@@ -125,7 +158,7 @@ export default function CalendarAvailability() {
                 selectedDayTextColor: Theme.colors.white,
                 todayTextColor: Theme.colors.bamxGreen,
                 dayTextColor: Theme.colors.black,
-                textDisabledColor: Theme.colors.babyGrey,
+                textDisabledColor: Theme.colors.red,
                 dotColor: Theme.colors.bamxGreen,
                 selectedDotColor: Theme.colors.white,
                 arrowColor: Theme.colors.bamxGreen,
@@ -202,7 +235,7 @@ const styles = StyleSheet.create({
     padding: spacing * 2,
   },
   calendarContainer: {
-    backgroundColor: Theme.colors.white,
+    backgroundColor: Theme.colors.white,  
     borderRadius: spacing * 2,
     ...Theme.shadows,
     padding: spacing,

@@ -45,6 +45,15 @@ export async function sendNewBookingNotification(booking: {
   startDate: string;
   worker: { name: string; lastName: string };
 }) {
+  // Obtener el usuario actual desde AsyncStorage
+  const user = await AsyncStorage.getItem('user');
+  if (!user) {
+    console.error('No user found in AsyncStorage');
+    return;
+  }
+  
+  const { _id: userId } = JSON.parse(user);
+
   // Ensure we have valid values for name and lastName
   const workerName = booking.worker?.name || 'Usuario';
   const workerLastName = booking.worker?.lastName || '';
@@ -57,6 +66,7 @@ export async function sendNewBookingNotification(booking: {
     date: new Date().toISOString(),
     read: false,
     bookingId: booking._id,
+    userId, // Añadir el ID del usuario
   };
 
   try {
@@ -105,13 +115,26 @@ export async function scheduleBookingNotification(booking: {
 
 export async function getUnreadNotificationsCount(): Promise<number> {
   try {
+    const user = await AsyncStorage.getItem('user');
+    if (!user) {
+      console.error('No user found in AsyncStorage');
+      return 0;
+    }
+    
+    const { _id: userId } = JSON.parse(user);
     const storedNotifications = await AsyncStorage.getItem('notifications');
     if (!storedNotifications) return 0;
-    
+
     const notifications = JSON.parse(storedNotifications);
-    return notifications.filter((n: { read: boolean }) => !n.read).length;
+    // Filtrar las notificaciones para el usuario actual
+    const unreadNotifications = notifications.filter(
+      (n: { read: boolean, userId: string }) => !n.read && n.userId === userId
+    );
+    return unreadNotifications.length;
   } catch (error) {
     console.error('Error getting unread notifications count:', error);
     return 0;
   }
 }
+
+

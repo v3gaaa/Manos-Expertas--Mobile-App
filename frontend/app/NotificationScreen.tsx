@@ -14,6 +14,7 @@ interface Notification {
   date: string;
   read: boolean;
   bookingId?: string;
+  userId: string;
 }
 
 export default function NotificationsScreen() {
@@ -26,14 +27,27 @@ export default function NotificationsScreen() {
 
   const loadNotifications = async () => {
     try {
+      const user = await AsyncStorage.getItem('user');
+      if (!user) {
+        console.error('No user found in AsyncStorage');
+        return;
+      }
+      
+      const { _id: userId } = JSON.parse(user);
       const storedNotifications = await AsyncStorage.getItem('notifications');
       if (storedNotifications) {
-        setNotifications(JSON.parse(storedNotifications));
+        const allNotifications = JSON.parse(storedNotifications);
+        // Filtrar las notificaciones solo para el usuario actual
+        const userNotifications = allNotifications.filter(
+          (notification: Notification) => notification.userId === userId
+        );
+        setNotifications(userNotifications);
       }
     } catch (error) {
       console.error('Error loading notifications:', error);
     }
   };
+  
 
   const markAsRead = async (notificationId: string) => {
     try {

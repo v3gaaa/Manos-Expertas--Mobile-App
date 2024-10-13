@@ -75,21 +75,53 @@ router.get('/bookings/user/:userId', async (req, res) => {
 // Verificar disponibilidad de un trabajador
 router.get('/bookings/availability/:workerId', async (req, res) => {
   try {
-    const { date } = req.query;
+    const { startDate, endDate } = req.query;
+    const workerId = req.params.workerId;
+
+    // Convertir las fechas de string a Date
+    const start = new Date(startDate as string);
+    const end = new Date(endDate as string);
+
+    // Buscar todas las reservas que se superponen con el rango de fechas dado
     const bookings = await Booking.find({
-      worker: req.params.workerId,
-      startDate: { $lte: new Date(date as string) },
-      endDate: { $gte: new Date(date as string) }
+      worker: workerId,
+      $or: [
+        { startDate: { $lte: end }, endDate: { $gte: start } },
+        { startDate: { $gte: start, $lte: end } },
+        { endDate: { $gte: start, $lte: end } }
+      ]
     });
 
-    const totalHoursBooked = bookings.reduce((sum, booking) => sum + booking.hoursPerDay, 0);
-    const availableHours = 8 - totalHoursBooked;
+    // Crear un objeto para almacenar las horas reservadas por día
+    const bookedHoursByDay: { [key: string]: number } = {};
 
-    res.json({ availableHours });
+    // Calcular las horas reservadas para cada día
+    bookings.forEach(booking => {
+      let currentDate = new Date(Math.max(booking.startDate.getTime(), start.getTime()));
+      const bookingEnd = new Date(Math.min(booking.endDate.getTime(), end.getTime()));
+
+      while (currentDate <= bookingEnd) {
+        const dateString = currentDate.toISOString().split('T')[0];
+        bookedHoursByDay[dateString] = (bookedHoursByDay[dateString] || 0) + booking.hoursPerDay;
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    });
+
+    // Determinar la disponibilidad para cada día
+    const availability: { [key: string]: boolean } = {};
+    let currentDate = new Date(start);
+    while (currentDate <= end) {
+      const dateString = currentDate.toISOString().split('T')[0];
+      availability[dateString] = (bookedHoursByDay[dateString] || 0) < 8;
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    res.json({ availability });
   } catch (error) {
     res.status(500).json({ message: (error as Error).message });
   }
 });
+
 
 
 
