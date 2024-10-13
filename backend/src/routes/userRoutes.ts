@@ -96,8 +96,15 @@ router.put('/users/:id', [
     }
 
     try {
-        console.log(`Updating user by ID: ${req.params.id} with body:`, req.body);
-        const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        console.log('Updating user by ID: %s with body:', req.params.id, req.body);
+        const updateFields = ['name', 'lastName', 'phoneNumber', 'profilePicture', 'address'];
+        const updateData: any = {};
+        updateFields.forEach(field => {
+            if (req.body[field] !== undefined) {
+                updateData[field] = req.body[field];
+            }
+        });
+        const updatedUser = await User.findByIdAndUpdate(req.params.id, { $set: updateData }, { new: true });
         if (!updatedUser) return res.status(404).json({ message: 'User not found' });
 
         res.json(updatedUser);

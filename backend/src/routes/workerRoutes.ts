@@ -160,7 +160,14 @@ router.put('/workers/:id', [
 
     console.log('Updating worker with ID:', req.params.id, 'with body:', req.body);
     try {
-        const worker = await Worker.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const updateFields = ['name', 'lastName', 'profession', 'phoneNumber', 'profilePicture', 'address', 'description'];
+        const updateData: any = {};
+        updateFields.forEach(field => {
+            if (req.body[field] !== undefined) {
+                updateData[field] = req.body[field];
+            }
+        });
+        const worker = await Worker.findByIdAndUpdate(req.params.id, { $set: updateData }, { new: true });
         if (!worker) {
             console.log('Worker not found for ID:', req.params.id);
             return res.status(404).json({ message: 'Worker not found' });
