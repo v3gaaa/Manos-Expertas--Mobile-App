@@ -22,6 +22,15 @@ import AppTextInput from '../components/appTextInput';
 import { Theme } from '../constants/theme';
 import fonts from '../constants/fonts';
 import spacing from '../constants/spacing';
+import { 
+  isValidName, 
+  isValidPhone, 
+  isValidPostalCode,
+  sanitizeInput, 
+  sanitizePhone,
+  getValidationErrorMessage,
+  escapeSQLInput
+} from '../utils/inputValidation';
 
 interface IUser {
   name: string;
@@ -76,11 +85,52 @@ const UserProfile = () => {
   };
 
   const handleUpdateProfile = async () => {
+    const sanitizedName = sanitizeInput(user.name);
+    const sanitizedLastName = sanitizeInput(user.lastName);
+    const sanitizedPhone = sanitizePhone(user.phoneNumber);
+    const sanitizedStreet = sanitizeInput(user.address.street);
+    const sanitizedCity = sanitizeInput(user.address.city);
+    const sanitizedState = sanitizeInput(user.address.state);
+    const sanitizedZipCode = sanitizeInput(user.address.zipCode);
+
+    if (!isValidName(sanitizedName)) {
+      Alert.alert('Error', getValidationErrorMessage('name'));
+      return;
+    }
+
+    if (!isValidName(sanitizedLastName)) {
+      Alert.alert('Error', getValidationErrorMessage('lastName'));
+      return;
+    }
+
+    if (!isValidPhone(sanitizedPhone)) {
+      Alert.alert('Error', getValidationErrorMessage('phone'));
+      return;
+    }
+
+    if (!isValidPostalCode(sanitizedZipCode)) {
+      Alert.alert('Error', getValidationErrorMessage('postalCode'));
+      return;
+    }
+
+    const updatedUser = {
+      ...user,
+      name: sanitizedName,
+      lastName: sanitizedLastName,
+      phoneNumber: sanitizedPhone,
+      address: {
+        street: sanitizedStreet,
+        city: sanitizedCity,
+        state: sanitizedState,
+        zipCode: sanitizedZipCode,
+      },
+    };
     try {
-      const updatedUser = await updateUser(user);
-      if (updatedUser) {
-        await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+      const result = await updateUser(updatedUser);
+      if (result) {
+        await AsyncStorage.setItem('user', JSON.stringify(result));
         Alert.alert('Success', 'User profile updated successfully.');
+        setUser(result);
       }
     } catch (error) {
       console.error('Error updating profile:', error);

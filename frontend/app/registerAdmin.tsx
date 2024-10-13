@@ -9,9 +9,17 @@ import ImageUploader from '../components/ImageUpload';
 import AppTextInput from '../components/appTextInput';
 import SuccessModal from '../components/SuccessModal';
 import { createAdminUser, uploadImage } from '../utils/apiHelper'; 
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,50}$/;
+import { 
+  isValidEmail, 
+  isValidName, 
+  isValidPhone, 
+  isValidPassword, 
+  sanitizeInput, 
+  sanitizeEmail, 
+  sanitizePhone,
+  getValidationErrorMessage,
+  escapeSQLInput
+} from '../utils/inputValidation';
 
 const RegisterAdmin: React.FC = () => {
   const [name, setName] = useState('');
@@ -23,86 +31,88 @@ const RegisterAdmin: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleAddAdmin = async () => {
-    console.log('Adding admin...');
-    console.log('Name:', name);
+    const sanitizedName = sanitizeInput(name);
+    const sanitizedLastName = sanitizeInput(lastName);
+    const sanitizedEmail = sanitizeEmail(email);
+    const sanitizedPhone = sanitizePhone(phone);
+    const sanitizedPassword = escapeSQLInput(password);
 
-    if (!emailRegex.test(email)) {
-        Alert.alert('Error', 'Por favor ingresa un correo válido.');
-        console.log('Email is invalid');
-        return;
+    if (!isValidName(sanitizedName)) {
+      Alert.alert('Error', getValidationErrorMessage('name'));
+      return;
     }
 
-    if (!passwordRegex.test(password)) {
-        Alert.alert(
-          'Error', 
-          'La contraseña debe tener al menos 8 caracteres, incluir una letra, un número y un carácter especial, y no exceder 50 caracteres.'
-        );
-        console.log('Password is invalid');
-        return;
+    if (!isValidName(sanitizedLastName)) {
+      Alert.alert('Error', getValidationErrorMessage('lastName'));
+      return;
     }
-    
-    if (!name || !lastName || !email || !password || !phone) {
-        Alert.alert('Error', 'Por favor llene los datos requeridos.');
-        console.log('Missing fields');
-        return;
+
+    if (!isValidEmail(sanitizedEmail)) {
+      Alert.alert('Error', getValidationErrorMessage('email'));
+      return;
+    }
+
+    if (!isValidPassword(password)) {
+      Alert.alert('Error', getValidationErrorMessage('password'));
+      return;
+    }
+
+    if (!isValidPhone(sanitizedPhone)) {
+      Alert.alert('Error', getValidationErrorMessage('phone'));
+      return;
     }
 
     try {
+      const salt = CryptoJS.lib.WordArray.random(16).toString();
+      const hashedPassword = CryptoJS.SHA512(sanitizedPassword + salt).toString();
 
-        const salt = CryptoJS.lib.WordArray.random(16).toString();
-        const hashedPassword = CryptoJS.SHA512(password + salt).toString();
+      let imageUri = profilePicture;
 
-        let imageUri = profilePicture;
-
-        if (profilePicture) {
-            const uploadedImage = await uploadImage(profilePicture); 
-            if (uploadedImage) {
-                imageUri = uploadedImage; 
-            } else {
-                Alert.alert('Error', 'No se pudo subir la imagen.');
-                return;
-            }
-        }
-
-        const newAdmin = {
-            name,
-            lastName,
-            email,
-            password: hashedPassword, 
-            phoneNumber: phone,
-            profilePicture: imageUri || '', 
-            address: {
-            street: '',
-            city: '',
-            state: '',
-            zipCode: '',
-            },
-            admin: true,
-            salt,
-        };
-
-        console.log('New admin:', newAdmin);
-
-       const response = await createAdminUser(newAdmin);
-
-       console.log('Response:', response);
-      
-        if (response) {
-            setModalVisible(true);
-            Alert.alert('Éxito', `Admin ${name} agregado.`);
-            setName('');
-            setLastName('');
-            setEmail('');
-            setPassword('');
-            setPhone('');
-            setProfilePicture('');
-        
+      if (profilePicture) {
+        const uploadedImage = await uploadImage(profilePicture); 
+        if (uploadedImage) {
+          imageUri = uploadedImage; 
         } else {
-            Alert.alert('Error', 'No se pudo agregar al admin.');
+          Alert.alert('Error', 'Failed to upload the image.');
+          return;
         }
+      }
+
+      const newAdmin = {
+        name: sanitizedName,
+        lastName: sanitizedLastName,
+        email: sanitizedEmail,
+        password: hashedPassword, 
+        phoneNumber: sanitizedPhone,
+        profilePicture: imageUri || '', 
+        address: {
+          street: '',
+          city: '',
+          state: '',
+          zipCode: '',
+        },
+        admin: true,
+        salt,
+      };
+
+      const response = await createAdminUser(newAdmin);
+      
+      if (response) {
+        setModalVisible(true);
+        Alert.alert('Success', `Admin ${sanitizedName} added.`);
+        // Reset form fields
+        setName('');
+        setLastName('');
+        setEmail('');
+        setPassword('');
+        setPhone('');
+        setProfilePicture('');
+      } else {
+        Alert.alert('Error', 'Could not add the admin.');
+      }
     } catch (error) {
       console.error('Error adding admin:', error);
-      Alert.alert('Error', 'Hubo un problema al agregar el admin.');
+      Alert.alert('Error', 'There was a problem adding the admin.');
     }
   };
 
