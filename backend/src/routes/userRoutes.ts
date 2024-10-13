@@ -11,7 +11,12 @@ const authMiddleware = (req: Request, res: Response, next: Function) => {
     const token = req.headers['authorization']?.split(' ')[1];
     if (!token) return res.status(403).send('Token is required');
 
-    jwt.verify(token, process.env.JWT_SECRET || 'yourSuperSecretKey', (err, user) => {
+    const jwtSecret = process.env.JWT_SECRET;
+
+    if (!jwtSecret) {
+        return res.status(500).send('Internal Server Error: JWT secret is not defined.');
+    }
+    jwt.verify(token, jwtSecret, (err, user) => {
         if (err) return res.status(403).send('Invalid token');
         req.user = user; // Attach user information to request object
         next();
@@ -189,9 +194,12 @@ router.post('/login', [
 
 // Token generation function
 function generateToken(user: IUser) {
-  // Generate a token using the user's ID and a secret key
-  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'yourSuperSecretKey', { expiresIn: '1h' });
-  return token;
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+        throw new Error('JWT secret is not defined');
+    }
+    const token = jwt.sign({ userId: user._id }, jwtSecret, { expiresIn: '1h' });
+    return token;
 }
 
 // Create a new admin user
