@@ -61,12 +61,11 @@ const Register: React.FC = () => {
     }
   
     try {
-      // Eliminamos la generación de salt y el hasheo del password
       const newUser = {
         name: sanitizedName,
         lastName: sanitizedLastName,
         email: sanitizedEmail,
-        password: password,  // Enviar la contraseña tal cual
+        password: password,
         phoneNumber: sanitizedPhone,
         profilePicture: '',
         address: {
@@ -76,28 +75,27 @@ const Register: React.FC = () => {
           zipCode: ''
         },
         admin: false,
-        salt: '',
+        salt: ''
       };
   
-
       const response = await signUp(newUser);
-
-      if (response && response.token) {
+  
+      if (response.success) {
         await AsyncStorage.removeItem('authToken');
         await AsyncStorage.removeItem('user');
         await AsyncStorage.setItem('authToken', response.token);
         await AsyncStorage.setItem('user', JSON.stringify(response.user));
-        Alert.alert('Success', 'User registered successfully');
+        Alert.alert('Éxito', 'Usuario registrado exitosamente');
         navigation.navigate('Home');
       } else {
-        Alert.alert('Error', 'Failed to register, please try again');
+        Alert.alert('Error', response.message); // Mostrar el mensaje específico devuelto por el backend
       }
     } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'An error occurred while trying to register');
+      console.error('Register error:', error);
+      Alert.alert('Error', 'Ocurrió un problema al intentar registrar al usuario');
     }
   };
-
+  
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <KeyboardAvoidingView

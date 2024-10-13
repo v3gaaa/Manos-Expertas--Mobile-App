@@ -91,13 +91,17 @@ router.post('/login', async (req: Request, res: Response) => {
 
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) {
+      return res.status(404).json({ message: 'El usuario no fue encontrado' });
+    }
 
     // Hash the input password with the user's salt
     const hashedInputPassword = CryptoJS.SHA512(password + user.salt).toString();
 
     // Compare the hashed password with the stored password
-    if (user.password !== hashedInputPassword) return res.status(401).json({ message: 'Invalid password' });
+    if (user.password !== hashedInputPassword) {
+      return res.status(401).json({ message: 'Contraseña incorrecta' });
+    }
 
     // Generate JWT token
     const token = generateToken(user);
@@ -106,7 +110,7 @@ router.post('/login', async (req: Request, res: Response) => {
     res.json({ user, token });
   } catch (error) {
     console.error('Error during login:', error);
-    res.status(500).json({ message: error });
+    res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
 
@@ -121,21 +125,26 @@ router.post('/signup', async (req: Request, res: Response) => {
   console.log('Signup attempt with body:', req.body);
   const { name, lastName, email, password, phoneNumber, profilePicture, address } = req.body;
 
-  // Generar salt y hashear la contraseña con SHA-512
-  const salt = CryptoJS.lib.WordArray.random(16).toString();
-  const hashedPassword = CryptoJS.SHA512(password + salt).toString();
-
-  // Crear nuevo usuario con la contraseña hasheada
-  const user = new User({ name, lastName, email, password: hashedPassword, phoneNumber, profilePicture, address, salt });
-
   try {
+    // Verificar si ya existe un usuario con ese correo
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ message: 'El correo ya está registrado' });
+    }
+
+    // Generar salt y hashear la contraseña
+    const salt = CryptoJS.lib.WordArray.random(16).toString();
+    const hashedPassword = CryptoJS.SHA512(password + salt).toString();
+
+    const user = new User({ name, lastName, email, password: hashedPassword, phoneNumber, profilePicture, address, salt });
     const newUser = await user.save();
+
     const token = generateToken(newUser);
     console.log('User signed up successfully:', newUser);
     res.status(201).json({ user: newUser, token });
   } catch (error) {
     console.error('Error during signup:', error);
-    res.status(400).json({ message: error });
+    res.status(400).json({ message: 'No se pudo registrar el usuario. Por favor intente nuevamente.' });
   }
 });
 

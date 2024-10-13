@@ -53,7 +53,6 @@ export interface IReview {
   rating: number;
 }
 
-// Función para iniciar sesión
 export async function logIn(email: string, password: string) {
   try {
     const response = await fetch(`${API_URL}/login`, {
@@ -63,19 +62,21 @@ export async function logIn(email: string, password: string) {
       },
       body: JSON.stringify({ email, password }),
     });
+
+    // Si la respuesta no es exitosa, devolver el estado y el mensaje de error del servidor
     if (!response.ok) {
-      throw new Error('Error en la solicitud de inicio de sesión');
+      const errorData = await response.json();
+      return { success: false, status: response.status, message: errorData.message };
     }
+
     const { token, user } = await response.json();
-    
-    return { token, user };
+    return { success: true, token, user };
   } catch (error) {
     console.error('Error in logIn:', error);
-    return null;
+    return { success: false, status: 500, message: 'Error en la solicitud de inicio de sesión' };
   }
 }
 
-// Función para registrarse
 export async function signUp(user: IUser) {
   try {
     const response = await fetch(`${API_URL}/signup`, {
@@ -85,13 +86,18 @@ export async function signUp(user: IUser) {
       },
       body: JSON.stringify(user),
     });
+
+    // Si la respuesta no es exitosa, devolver el estado y el mensaje de error del servidor
     if (!response.ok) {
-      throw new Error('Error en la solicitud de registro');
+      const errorData = await response.json();
+      return { success: false, status: response.status, message: errorData.message };
     }
-    return await response.json();
+
+    const data = await response.json();
+    return { success: true, ...data };
   } catch (error) {
     console.error('Error in signUp:', error);
-    return null;
+    return { success: false, status: 500, message: 'Error en la solicitud de registro' };
   }
 }
 

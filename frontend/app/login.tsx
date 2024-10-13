@@ -8,51 +8,31 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import AppTextInput from '../components/appTextInput';
 import { logIn, getUserByEmail } from '../utils/apiHelper';
-// Regex for email and password
-//const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-//const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,50}$/;
+
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
 
   const handleLogIn = async () => {
-    //if (!emailRegex.test(email)) {
-      //Alert.alert('Error', 'Por favor ingresa un correo válido.');
-      //return;
-    //}
-
-    //if (!passwordRegex.test(password)) {
-      //Alert.alert(
-        //'Error', 
-        //'La contraseña debe tener al menos 8 caracteres, incluir una letra, un número y un carácter especial, y no exceder 50 caracteres.'
-      //);
-      //return;
-    //}
     try {
       const response = await logIn(email, password);
-
-      if (response && response.token) {
-        // Obtiene el token y los datos del usuario
+  
+      if (response.success) {
         const { token, user } = response;
-
-        // Guarda el token y los datos del usuario en el almacenamiento local
         await AsyncStorage.setItem('authToken', token);
-        await AsyncStorage.setItem('user', JSON.stringify(user)); // Optional: store user details
-
+        await AsyncStorage.setItem('user', JSON.stringify(user));
         Alert.alert('Éxito', `Inicio de sesión exitoso. Bienvenido, ${user.name}!`);
-
-        // Navega basado en permisos del usuario
         if (user.admin) {
-          navigation.navigate('AdminHome'); // Si es admin, navega a la pantalla de inicio de admin
+          navigation.navigate('AdminHome');
         } else {
-          navigation.navigate('Home'); // Navegar a la pantalla de inicio
+          navigation.navigate('Home');
         }
       } else {
-        Alert.alert('Error', 'Correo o contraseña incorrectos');
+        Alert.alert('Error', response.message); // Mostrar el mensaje específico devuelto por el backend
       }
     } catch (error) {
-      console.error(error);
+      console.error('Login error:', error);
       Alert.alert('Error', 'Ocurrió un problema al intentar iniciar sesión');
     }
   };
