@@ -1,3 +1,5 @@
+import sanitizeHtml from 'sanitize-html';
+
 // SQL Injection Prevention 
 export const escapeSQLInput = (input: string): string => {
   if (typeof input !== 'string') {
@@ -24,7 +26,7 @@ export const escapeSQLInput = (input: string): string => {
 // Enhanced sanitizeInput function
 export const sanitizeInput = (input: string): string => {
   // Remove any HTML tags and apply SQL injection prevention
-  return escapeSQLInput(input.replace(/<[^>]*>?/gm, '').trim());
+  return escapeSQLInput(sanitizeHtml(input).trim());
 };
 
 // Enhanced sanitizeEmail function
