@@ -34,7 +34,6 @@ const Register: React.FC = () => {
     const sanitizedName = sanitizeInput(name);
     const sanitizedLastName = sanitizeInput(lastName);
     const sanitizedPhone = sanitizePhone(phone);
-    const sanitizedPassword = escapeSQLInput(password);
   
     if (!isValidEmail(sanitizedEmail)) {
       Alert.alert('Error', getValidationErrorMessage('email'));
@@ -62,14 +61,12 @@ const Register: React.FC = () => {
     }
   
     try {
-      const salt = CryptoJS.lib.WordArray.random(16).toString();
-      const hashedPassword = CryptoJS.SHA512(sanitizedPassword + salt).toString();
-  
+      // Eliminamos la generación de salt y el hasheo del password
       const newUser = {
         name: sanitizedName,
         lastName: sanitizedLastName,
         email: sanitizedEmail,
-        password: hashedPassword,
+        password: password,  // Enviar la contraseña tal cual
         phoneNumber: sanitizedPhone,
         profilePicture: '',
         address: {
@@ -79,8 +76,9 @@ const Register: React.FC = () => {
           zipCode: ''
         },
         admin: false,
-        salt,
+        salt: '',
       };
+  
 
       const response = await signUp(newUser);
 

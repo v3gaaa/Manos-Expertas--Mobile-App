@@ -88,6 +88,7 @@ router.get('/users/email/:email', async (req: Request, res: Response) => {
 router.post('/login', async (req: Request, res: Response) => {
   console.log('Login attempt with body:', req.body);
   const { email, password } = req.body;
+
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -118,9 +119,15 @@ function generateToken(user: IUser) {
 // Signup
 router.post('/signup', async (req: Request, res: Response) => {
   console.log('Signup attempt with body:', req.body);
-  const { name, lastName, email, password, phoneNumber, profilePicture, address, salt } = req.body;
-  const user = new User({ name, lastName, email, password, phoneNumber, profilePicture, address, salt });
-  
+  const { name, lastName, email, password, phoneNumber, profilePicture, address } = req.body;
+
+  // Generar salt y hashear la contraseña con SHA-512
+  const salt = CryptoJS.lib.WordArray.random(16).toString();
+  const hashedPassword = CryptoJS.SHA512(password + salt).toString();
+
+  // Crear nuevo usuario con la contraseña hasheada
+  const user = new User({ name, lastName, email, password: hashedPassword, phoneNumber, profilePicture, address, salt });
+
   try {
     const newUser = await user.save();
     const token = generateToken(newUser);
