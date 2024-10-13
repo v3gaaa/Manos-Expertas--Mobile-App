@@ -81,13 +81,13 @@ router.get('/reviews/worker/:workerId', limiter, [
     }
 
     const workerId = req.params.workerId;
-    console.log(`Fetching reviews for worker ID: ${workerId}`);
+    console.log('Fetching reviews for worker ID: %s', workerId);
     try {
         const reviews = await Review.find({ worker: workerId })
             .populate('worker')
             .populate('user')
             .populate('booking');
-        console.log(`Reviews fetched for worker ${workerId}:`, reviews.length);
+        console.log('Reviews fetched for worker %s: %d', workerId, reviews.length);
         res.json(reviews);
     } catch (error) {
         console.error('Error fetching reviews by worker ID:', error);
