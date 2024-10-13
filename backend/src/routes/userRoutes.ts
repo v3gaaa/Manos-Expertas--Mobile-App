@@ -96,7 +96,7 @@ router.put('/users/:id', [
     }
 
     try {
-        console.log(`Updating user by ID: ${req.params.id} with body:`, req.body);
+        console.log('Updating user by ID: %s with body:', req.params.id, req.body);
         const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!updatedUser) return res.status(404).json({ message: 'User not found' });
 
