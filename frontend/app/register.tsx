@@ -9,9 +9,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import AppTextInput from '../components/appTextInput';
 import { signUp } from '../utils/apiHelper';
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,50}$/;
+import { 
+  isValidEmail, 
+  isValidName, 
+  isValidPhone, 
+  isValidPassword, 
+  sanitizeInput, 
+  sanitizeEmail, 
+  sanitizePhone,
+  getValidationErrorMessage,
+  escapeSQLInput
+} from '../utils/inputValidation';
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -22,29 +30,47 @@ const Register: React.FC = () => {
   const navigation = useNavigation();
 
   const handleRegister = async () => {
-    if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Por favor ingresa un correo válido.');
+    const sanitizedEmail = sanitizeEmail(email);
+    const sanitizedName = sanitizeInput(name);
+    const sanitizedLastName = sanitizeInput(lastName);
+    const sanitizedPhone = sanitizePhone(phone);
+    const sanitizedPassword = escapeSQLInput(password);
+  
+    if (!isValidEmail(sanitizedEmail)) {
+      Alert.alert('Error', getValidationErrorMessage('email'));
       return;
     }
-
-    if (!passwordRegex.test(password)) {
-      Alert.alert(
-        'Error', 
-        'La contraseña debe tener al menos 8 caracteres, incluir una letra, un número y un carácter especial, y no exceder 50 caracteres.'
-      );
+  
+    if (!isValidPassword(password)) {
+      Alert.alert('Error', getValidationErrorMessage('password'));
       return;
     }
-
+  
+    if (!isValidName(sanitizedName)) {
+      Alert.alert('Error', getValidationErrorMessage('name'));
+      return;
+    }
+  
+    if (!isValidName(sanitizedLastName)) {
+      Alert.alert('Error', getValidationErrorMessage('lastName'));
+      return;
+    }
+  
+    if (!isValidPhone(sanitizedPhone)) {
+      Alert.alert('Error', getValidationErrorMessage('phone'));
+      return;
+    }
+  
     try {
       const salt = CryptoJS.lib.WordArray.random(16).toString();
-      const hashedPassword = CryptoJS.SHA512(password + salt).toString();
-
+      const hashedPassword = CryptoJS.SHA512(sanitizedPassword + salt).toString();
+  
       const newUser = {
-        name,
-        lastName,
-        email,
+        name: sanitizedName,
+        lastName: sanitizedLastName,
+        email: sanitizedEmail,
         password: hashedPassword,
-        phoneNumber: phone,
+        phoneNumber: sanitizedPhone,
         profilePicture: '',
         address: {
           street: '',
@@ -59,19 +85,18 @@ const Register: React.FC = () => {
       const response = await signUp(newUser);
 
       if (response && response.token) {
-            //Async Storage cleanup
         await AsyncStorage.removeItem('authToken');
         await AsyncStorage.removeItem('user');
         await AsyncStorage.setItem('authToken', response.token);
         await AsyncStorage.setItem('user', JSON.stringify(response.user));
-        Alert.alert('Éxito', 'Usuario registrado exitosamente');
+        Alert.alert('Success', 'User registered successfully');
         navigation.navigate('Home');
       } else {
-        Alert.alert('Error', 'Error al registrarse, por favor intenta nuevamente');
+        Alert.alert('Error', 'Failed to register, please try again');
       }
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'Ocurrió un problema al intentar registrarse');
+      Alert.alert('Error', 'An error occurred while trying to register');
     }
   };
 
