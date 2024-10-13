@@ -1,7 +1,30 @@
 import express, { Request, Response } from 'express';
-import User, { IUser } from '../models/User';
+import User, {IUser} from '../models/User';
 import jwt from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
 import CryptoJS from 'crypto-js';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+// Configurar transporte de nodemailer para enviar correos
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+//console log if the email and password are correct
+transporter.verify(function(error, success) {
+  if (error) {
+    console.log(error);
+  } else {
+    console.log('NodeMailer is ready to send emails');
+};
+});
+
 
 const router = express.Router();
 
@@ -184,5 +207,66 @@ router.post('/admin', async (req: Request, res: Response) => {
 });
 
 
+// Solicitar restablecimiento de contraseña
+router.post('/request-password-reset', async (req: Request, res: Response) => {
+  const { email } = req.body;
 
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Generar un código de verificación de 6 dígitos
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Guardar el código temporalmente en el usuario
+    user.resetCode = resetCode;
+    await user.save();
+
+    // Enviar correo con el código de verificación
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Código de Restablecimiento de Contraseña',
+      text: `Tu código de verificación para restablecer la contraseña es: ${resetCode}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.json({ success: true, message: 'Correo de restablecimiento enviado' });
+  } catch (error) {
+    console.error('Error solicitando restablecimiento de contraseña:', error);
+    res.status(500).json({ message: 'Error al solicitar restablecimiento de contraseña' });
+  }
+});
+
+// Restablecer contraseña
+router.post('/reset-password', async (req: Request, res: Response) => {
+  const { email, code, newPassword } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Verificar el código de restablecimiento
+    if (user.resetCode !== code) {
+      return res.status(400).json({ message: 'Código de verificación incorrecto' });
+    }
+
+    // Actualizar la contraseña
+    const salt = CryptoJS.lib.WordArray.random(16).toString();
+    const hashedPassword = CryptoJS.SHA512(newPassword + salt).toString();
+    user.password = hashedPassword;
+    user.salt = salt;
+    user.resetCode = undefined; // Eliminar el código después de usarlo
+    await user.save();
+
+    res.json({ success: true, message: 'Contraseña restablecida con éxito' });
+  } catch (error) {
+    console.error('Error restableciendo la contraseña:', error);
+    res.status(500).json({ message: 'Error al restablecer la contraseña' });
+  }
+});
 export default router;

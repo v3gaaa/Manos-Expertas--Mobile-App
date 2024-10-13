@@ -7,7 +7,7 @@ import 'react-native-get-random-values';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import AppTextInput from '../components/appTextInput';
-import { logIn, getUserByEmail } from '../utils/apiHelper';
+import { logIn } from '../utils/apiHelper';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -61,9 +61,11 @@ const Login: React.FC = () => {
           />
         </View>
         <View>
-          <Text style={{ fontFamily: fonts.MontserratBold, fontSize: Theme.size.xs, color: Theme.colors.bamxRed, alignSelf: 'flex-end' }}>
-            ¿Olvidaste tu contraseña?
-          </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+            <Text style={{ fontFamily: fonts.MontserratBold, fontSize: Theme.size.xs, color: Theme.colors.bamxRed, alignSelf: 'flex-end' }}>
+              ¿Olvidaste tu contraseña?
+            </Text>
+          </TouchableOpacity>
         </View>
         <TouchableOpacity onPress={handleLogIn} style={styles.btn}>
           <Text style={styles.btnText}>Ingresa</Text>

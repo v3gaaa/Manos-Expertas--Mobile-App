@@ -22,6 +22,8 @@ import EditWorkerSearch from "../app/editWorkerSearch";
 import UserProfile from "../app/UserProfile";
 import BookingDetails from "../app/BookingDetails";
 import Notifications from "../app/NotificationScreen";
+import ForgotPassword from "../app/ForgotPassword";
+import ResetPassword from "../app/ResetPassword";
 import { RootStackParamList } from "../types";
 
 const theme = {
@@ -46,8 +48,8 @@ const RootNavigator: React.FC = () => {
   return (
     <Stack.Navigator initialRouteName="Welcome">
       <Stack.Screen name="Welcome" component={Welcome} options={{ headerShown: false}} />
-      <Stack.Screen name="Register" component={Register} />
-      <Stack.Screen name="Login" component={Login} />
+      <Stack.Screen name="Register" component={Register} options={{headerShown: false}} />
+      <Stack.Screen name="Login" component={Login}  options={{headerShown: false}} />
       <Stack.Screen 
         name="Home" 
         component={Home} 
@@ -83,6 +85,16 @@ const RootNavigator: React.FC = () => {
       <Stack.Screen 
         name="Notifications" 
         component={Notifications} 
+        options={{ headerShown: false, animationEnabled: false }}
+      />
+      <Stack.Screen 
+        name="ForgotPassword" 
+        component={ForgotPassword} 
+        options={{ headerShown: false, animationEnabled: false }}
+      />
+      <Stack.Screen 
+        name="ResetPassword" 
+        component={ResetPassword} 
         options={{ headerShown: false, animationEnabled: false }}
       />
     </Stack.Navigator>

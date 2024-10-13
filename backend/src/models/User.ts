@@ -17,6 +17,7 @@ export interface IUser extends Document {
   createdAt: Date;
   updatedAt: Date;
   salt: string;
+  resetCode?: string;
 }
 
 const UserSchema: Schema = new mongoose.Schema({
@@ -35,7 +36,8 @@ const UserSchema: Schema = new mongoose.Schema({
   admin: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
-  salt : { type: String, required: true }
+  salt: { type: String, required: true },
+  resetCode: { type: String, required: false },
 });
 
 export default mongoose.model<IUser>('User', UserSchema);

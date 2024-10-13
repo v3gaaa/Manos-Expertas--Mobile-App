@@ -604,3 +604,45 @@ export async function getAllWorkers() {
     return null;
   }
 }
+
+// Función para solicitar restablecimiento de contraseña
+export async function requestPasswordReset(email: string) {
+  try {
+    const response = await fetch(`${API_URL}/request-password-reset`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { success: false, status: response.status, message: errorData.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error in requestPasswordReset:', error);
+    return { success: false, status: 500, message: 'Error al solicitar restablecimiento de contraseña' };
+  }
+}
+
+export async function resetPassword(email: string, code: string, newPassword: string) {
+  try {
+    const response = await axios.post(`${API_URL}/reset-password`, {
+      email,
+      code,
+      newPassword,
+    });
+
+    if (response.status === 200) {
+      return { success: true, message: response.data.message };
+    }
+
+    return { success: false, message: response.data.message };
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    return { success: false, message: 'Error al restablecer la contraseña' };
+  }
+}

@@ -29,6 +29,8 @@ export type RootStackParamList = {
   UserProfile: undefined;
   BookingDetails: { bookingId: string };
   Notifications: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: { email: string };
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =
