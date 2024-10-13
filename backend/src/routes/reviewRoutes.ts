@@ -10,8 +10,15 @@ import mongoose from 'mongoose';
 import Review from '../models/Review';
 import { body, param, validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
+import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
+
+// Set up rate limiter: maximum of 100 requests per 15 minutes
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+});
 
 // Middleware for authentication
 const authMiddleware = (req: Request, res: Response, next: Function) => {
@@ -26,7 +33,7 @@ const authMiddleware = (req: Request, res: Response, next: Function) => {
 };
 
 // Create a new review
-router.post('/reviews', authMiddleware, [
+router.post('/reviews', limiter, authMiddleware, [
     body('worker').isMongoId().withMessage('Invalid worker ID format'),
     body('user').isMongoId().withMessage('Invalid user ID format'),
     body('booking').isMongoId().withMessage('Invalid booking ID format'),
@@ -52,7 +59,7 @@ router.post('/reviews', authMiddleware, [
 });
 
 // Get all reviews
-router.get('/reviews', async (req: Request, res: Response) => {
+router.get('/reviews', limiter, async (req: Request, res: Response) => {
     console.log('Fetching all reviews');
     try {
         const reviews = await Review.find().populate('worker').populate('user').populate('booking');
@@ -65,7 +72,7 @@ router.get('/reviews', async (req: Request, res: Response) => {
 });
 
 // Get all reviews by worker ID
-router.get('/reviews/worker/:workerId', [
+router.get('/reviews/worker/:workerId', limiter, [
     param('workerId').isMongoId().withMessage('Invalid worker ID format'),
 ], async (req: Request, res: Response) => {
     const errors = validationResult(req);
