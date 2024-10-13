@@ -646,3 +646,15 @@ export async function resetPassword(email: string, code: string, newPassword: st
     return { success: false, message: 'Error al restablecer la contraseña' };
   }
 }
+
+
+export async function getWorkerAverageRatings(workerIds: string[]) {
+  try {
+    const response = await axios.post(`${API_URL}/reviews/workers/average-ratings`, { workerIds });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching average ratings for workers:', error);
+    return null;
+  }
+}
+

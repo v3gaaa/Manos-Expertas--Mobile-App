@@ -224,12 +224,74 @@ router.post('/request-password-reset', async (req: Request, res: Response) => {
     user.resetCode = resetCode;
     await user.save();
 
-    // Enviar correo con el código de verificación
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Código de Restablecimiento de Contraseña',
-      text: `Tu código de verificación para restablecer la contraseña es: ${resetCode}`,
+      subject: 'Código de Restablecimiento de Contraseña - Manos Expertas',
+      html: `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Restablecimiento de Contraseña</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    color: #333333;
+                    max-width: 600px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+                .header {
+                    background-color: #F7B32B;
+                    color: #ffffff;
+                    text-align: center;
+                    padding: 20px;
+                    border-radius: 5px 5px 0 0;
+                }
+                .content {
+                    background-color: #ffffff;
+                    padding: 20px;
+                    border-radius: 0 0 5px 5px;
+                    border: 1px solid #e0e0e0;
+                }
+                .code {
+                    font-size: 24px;
+                    font-weight: bold;
+                    text-align: center;
+                    color: #F7B32B;
+                    margin: 20px 0;
+                    padding: 10px;
+                    background-color: #f5f5f5;
+                    border-radius: 5px;
+                }
+                .footer {
+                    text-align: center;
+                    margin-top: 20px;
+                    font-size: 12px;
+                    color: #888888;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>Restablecimiento de Contraseña</h1>
+            </div>
+            <div class="content">
+                <p>Hola,</p>
+                <p>Has solicitado restablecer tu contraseña para tu cuenta en Manos Expertas. Utiliza el siguiente código de verificación para completar el proceso:</p>
+                <div class="code">${resetCode}</div>
+                <p>Este código es válido por 30 minutos. Si no has solicitado este cambio, por favor ignora este correo o contacta a nuestro equipo de soporte.</p>
+                <p>Gracias,<br>El equipo de Manos Expertas</p>
+            </div>
+            <div class="footer">
+                <p>Este es un correo automático, por favor no respondas a esta dirección.</p>
+            </div>
+        </body>
+        </html>
+      `,
     };
 
     await transporter.sendMail(mailOptions);

@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, Image, FlatList, TouchableOpacity, Alert, RefreshControl, SafeAreaView, StatusBar, ScrollView } from 'react-native';
+import { View, Text, Image, FlatList, TouchableOpacity, Alert, RefreshControl, SafeAreaView, StatusBar, ScrollView, StyleSheet, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getWorkersByProfession, getProfessions, getUserBookings, getWorkerAverageRating } from '../utils/apiHelper';
+import { getWorkersByProfession, getProfessions, getUserBookings, getWorkerAverageRating, getWorkerAverageRatings } from '../utils/apiHelper';
 import { Theme } from '../constants/theme';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
@@ -10,7 +10,7 @@ import SearchBar from '../components/SearchBar';
 import WorkerCard from '../components/WorkerCard';
 import CitasCard from '../components/CitasCard';
 import Footer from '../components/footer';
-import { Bell, Calendar } from 'lucide-react-native';
+import { Bell, Calendar, LogOut } from 'lucide-react-native';
 import { getUnreadNotificationsCount } from '../utils/notificationService';
 
 interface Booking {
@@ -48,8 +48,9 @@ export default function Home() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [searchText, setSearchText] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-  const navigation = useNavigation();
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const navigation = useNavigation();
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   const loadUser = useCallback(async () => {
     try {
@@ -78,24 +79,28 @@ export default function Home() {
 
   const fetchWorkerRatings = async (workersData: Worker[]) => {
     try {
-      const workersWithRatings = await Promise.all(
-        workersData.map(async (worker) => {
-          const ratingData = await getWorkerAverageRating(worker._id);
+      const workerIds = workersData.map(worker => worker._id);
+      const ratingsData = await getWorkerAverageRatings(workerIds);
+  
+      if (ratingsData) {
+        const workersWithRatings = workersData.map(worker => {
+          const ratingInfo = ratingsData.find((r: { workerId: string; averageRating: number }) => r.workerId === worker._id);
           return {
             ...worker,
-            rating: ratingData?.averageRating || 0
+            rating: ratingInfo ? ratingInfo.averageRating : 0
           };
-        })
-      );
-      // Ordenar trabajadores por rating de mayor a menor y tomar los primeros 10
-      const sortedWorkers = workersWithRatings
-        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-        .slice(0, 10);
-      setWorkers(sortedWorkers);
+        });
+        
+        const sortedWorkers = workersWithRatings
+          .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+          .slice(0, 10);
+        setWorkers(sortedWorkers);
+      }
     } catch (error) {
       console.error('Error fetching worker ratings:', error);
     }
   };
+  
 
   const fetchWorkers = useCallback(async () => {
     try {
@@ -156,7 +161,13 @@ export default function Home() {
     fetchProfessions();
     fetchWorkers();
     fetchBookings();
-  }, [loadUser, fetchProfessions, fetchWorkers, fetchBookings]);
+
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, [loadUser, fetchProfessions, fetchWorkers, fetchBookings, fadeAnim]);
 
   useEffect(() => {
     const loadUnreadCount = async () => {
@@ -165,11 +176,9 @@ export default function Home() {
     };
 
     loadUnreadCount();
-    // Actualizar el contador cuando la pantalla obtiene el foco
     const unsubscribe = navigation.addListener('focus', loadUnreadCount);
     return unsubscribe;
   }, [navigation]);
-
 
   const handleSearch = () => {
     if (searchText.trim() === '') {
@@ -185,6 +194,34 @@ export default function Home() {
 
   const handleNotificationsPress = () => {
     navigation.navigate('Notifications');
+  };
+
+  const handleProfilePress = () => {
+    navigation.navigate('UserProfile');
+  };
+
+  const handleLogout = async () => {
+    Alert.alert(
+      "Cerrar sesión",
+      "¿Estás seguro de que quieres cerrar sesión?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel"
+        },
+        { 
+          text: "Sí, cerrar sesión", 
+          onPress: async () => {
+            await AsyncStorage.removeItem('authToken');
+            await AsyncStorage.removeItem('user');
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }],
+            });
+          }
+        }
+      ]
+    );
   };
 
   const renderWorkerCard = ({ item }: { item: Worker }) => (
@@ -213,17 +250,14 @@ export default function Home() {
     </TouchableOpacity>
   );
 
-  const handleProfilePress = () => {
-    navigation.navigate('UserProfile');
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={Theme.colors.bamxYellow} />
-      <ScrollView
+      <Animated.ScrollView
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
+        style={{ opacity: fadeAnim }}
       >
         <View style={styles.header}>
           {userData && (
@@ -254,6 +288,12 @@ export default function Home() {
                     </View>
                   )}
                 </View>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.iconButton}
+                onPress={handleLogout}
+              >
+                <LogOut color={Theme.colors.black} size={24} />
               </TouchableOpacity>
             </View>
           )}
@@ -321,13 +361,13 @@ export default function Home() {
             </TouchableOpacity>
           </View>
         )}
-      </ScrollView>
+      </Animated.ScrollView>
       <Footer />
     </SafeAreaView>
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Theme.colors.bgColor,
@@ -339,7 +379,7 @@ const styles = {
   },
   profileContainer: {
     flexDirection: 'row',
-    alignItems: 'center' as 'center',
+    alignItems: 'center',
     marginBottom: spacing * 2,
   },
   profileImage: {
@@ -370,6 +410,7 @@ const styles = {
     paddingLeft: spacing,
     paddingRight: spacing,
     backgroundColor: Theme.colors.bamxYellow,
+  
   },
   professionButton: {
     paddingHorizontal: spacing * 2,
@@ -475,4 +516,4 @@ const styles = {
     fontSize: Theme.size.xs,
     fontFamily: fonts.PoppinsSemiBold,
   },
-};
+});

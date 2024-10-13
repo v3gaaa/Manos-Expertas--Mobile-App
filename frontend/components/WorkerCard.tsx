@@ -1,96 +1,88 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Theme } from '../constants/theme';
 import fonts from '../constants/fonts';
 import spacing from '../constants/spacing';
 
 interface WorkerCardProps {
-  id: string; // Añade la propiedad id
+  id: string;
   name: string;
-  lastName: string; 
+  lastName: string;
   profession: string;
-  profilePicture: string;
   rating: number;
+  profilePicture?: string;
 }
 
-const WorkerCard: React.FC<WorkerCardProps> = ({ id, name, lastName, profession, profilePicture, rating }) => {
+export default function WorkerCard({ id, name, lastName, profession, rating, profilePicture }: WorkerCardProps) {
   const navigation = useNavigation();
 
   const handlePress = () => {
     navigation.navigate('WorkerDetail', { workerId: id });
   };
 
+  const defaultProfilePicture = 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.basiclines.com%2Fwp-content%2Fuploads%2F2019%2F01%2Fblank-user.jpg&f=1&nofb=1&ipt=ca5e2c2b13f2cf4fb7ec7284dd85147bf639caab21a1a44c81aa07b30eab197e&ipo=images';
+
   return (
-    <TouchableOpacity onPress={handlePress} style={styles.cardContainer}>
-      <Image source={{ uri: profilePicture || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.basiclines.com%2Fwp-content%2Fuploads%2F2019%2F01%2Fblank-user.jpg&f=1&nofb=1&ipt=ca5e2c2b13f2cf4fb7ec7284dd85147bf639caab21a1a44c81aa07b30eab197e&ipo=images'}} style={styles.profileImage} />
+    <TouchableOpacity onPress={handlePress} style={styles.cardContainer} accessibilityRole="button" accessibilityLabel={`Ver detalles de ${name} ${lastName}, ${profession}`}>
+      <Image 
+        source={{ uri: profilePicture || defaultProfilePicture }} 
+        style={styles.profileImage} 
+      />
       <View style={styles.detailSection}>
-        <View style={styles.textRatingContainer}>
-          <Text style={styles.workerName}>{name} {lastName}</Text>
-          <View style={styles.ratingContainer}>
-            <AntDesign name="star" size={14} color="#FFD33C" />
-            <Text style={styles.ratingText}>{rating}</Text>
-          </View>
+        <Text style={styles.workerName} numberOfLines={1}>{name} {lastName}</Text>
+        <Text style={styles.professionText} numberOfLines={1}>{profession}</Text>
+        <View style={styles.ratingContainer}>
+          <Feather name="star" size={16} color={Theme.colors.bamxYellow} />
+          <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
         </View>
-        <Text style={styles.professionText}>{profession}</Text>
       </View>
     </TouchableOpacity>
   );
-};
+}
 
 const styles = StyleSheet.create({
   cardContainer: {
-    width: 180,
-    height: 193,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
+    width: 160,
+    borderRadius: spacing * 2,
+    backgroundColor: Theme.colors.white,
+    shadowColor: Theme.colors.black,
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 3,
-    elevation: 2,
-    marginBottom: spacing * 2,
+    shadowRadius: 4,
+    elevation: 3,
+    marginRight: spacing * 2,
+    overflow: 'hidden',
   },
   profileImage: {
     width: '100%',
-    height: 134,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    backgroundColor: '#E8E8E8',
+    height: 120,
+    resizeMode: 'cover',
   },
   detailSection: {
     padding: spacing,
-    backgroundColor: '#FFFFFF',
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-  },
-  textRatingContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 5,
   },
   workerName: {
-    fontSize: 14,
-    fontFamily: fonts.PoppinsMedium,
-    color: '#101010',
+    fontSize: Theme.size.md,
+    fontFamily: fonts.PoppinsSemiBold,
+    color: Theme.colors.black,
+    marginBottom: spacing / 2,
+  },
+  professionText: {
+    fontSize: Theme.size.sm,
+    fontFamily: fonts.PoppinsRegular,
+    color: Theme.colors.bamxGrey,
+    marginBottom: spacing / 2,
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   ratingText: {
-    marginLeft: 4,
-    fontSize: 10,
+    marginLeft: spacing / 2,
+    fontSize: Theme.size.sm,
     fontFamily: fonts.PoppinsMedium,
-    color: '#101010',
-  },
-  professionText: {
-    fontSize: 12,
-    fontFamily: fonts.PoppinsMedium,
-    color: '#939393',
+    color: Theme.colors.black,
   },
 });
-
-export default WorkerCard;

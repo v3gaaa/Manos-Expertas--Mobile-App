@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView, StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { SafeAreaView, StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView, ActivityIndicator, Animated } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createBooking } from '../utils/apiHelper';
@@ -23,14 +23,12 @@ export default function TimeAvailability() {
   const [hoursPerDay, setHoursPerDay] = useState<number>(1);
   const [userId, setUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const setup = async () => {
       try {
-        // Register for push notifications when component mounts
         await registerForPushNotificationsAsync();
-        
-        // Load user data
         const user = await AsyncStorage.getItem('user');
         if (user) {
           const parsedUser = JSON.parse(user);
@@ -45,20 +43,24 @@ export default function TimeAvailability() {
     };
     
     setup();
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim]);
+
+  const handleHourSelect = useCallback((hours: number) => {
+    setHoursPerDay(hours);
   }, []);
 
-  const handleHourSelect = (hours: number) => {
-    setHoursPerDay(hours);
-  };
-
-  const getDaysBetweenDates = (start: string, end: string) => {
+  const getDaysBetweenDates = useCallback((start: string, end: string) => {
     const startDate = new Date(start);
     const endDate = new Date(end);
-    const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)) + 1;
-    return days;
-  };
+    return Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)) + 1;
+  }, []);
 
-  const handleReserve = async () => {
+  const handleReserve = useCallback(async () => {
     if (!userId) {
       Alert.alert('Error', 'No se pudo obtener la información del usuario');
       return;
@@ -66,7 +68,6 @@ export default function TimeAvailability() {
   
     setIsLoading(true);
     try {
-      // Create the booking
       const bookingResponse = await createBooking({
         worker: workerId,
         user: userId,
@@ -75,7 +76,6 @@ export default function TimeAvailability() {
         hoursPerDay,
       });
   
-      // Create a properly structured booking data object
       const bookingData = {
         _id: bookingResponse._id,
         startDate,
@@ -85,7 +85,6 @@ export default function TimeAvailability() {
         }
       };
   
-      // Send both notifications with the proper data
       await Promise.all([
         sendNewBookingNotification(bookingData),
         scheduleBookingNotification(bookingData)
@@ -103,9 +102,8 @@ export default function TimeAvailability() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId, workerId, startDate, endDate, hoursPerDay, workerName, workerLastName, navigation]);
 
-  // Rest of the component remains the same...
   const totalDays = getDaysBetweenDates(startDate, endDate);
 
   return (
@@ -116,7 +114,10 @@ export default function TimeAvailability() {
         </TouchableOpacity>
         <Text style={styles.title}>Horas por día</Text>
       </View>
-      <ScrollView contentContainerStyle={styles.content}>
+      <Animated.ScrollView 
+        contentContainerStyle={styles.content}
+        style={{ opacity: fadeAnim }}
+      >
         <Text style={styles.subtitle}>Selecciona las horas de trabajo por día</Text>
         <View style={styles.hoursContainer}>
           {[1, 2, 3, 4, 5, 6, 7, 8].map((hour) => (
@@ -140,6 +141,7 @@ export default function TimeAvailability() {
           ))}
         </View>
         <View style={styles.summaryContainer}>
+          
           <Text style={styles.summaryTitle}>Resumen de la reserva:</Text>
           <Text style={styles.summaryText}>Fecha de inicio: {startDate}</Text>
           <Text style={styles.summaryText}>Fecha de fin: {endDate}</Text>
@@ -147,7 +149,7 @@ export default function TimeAvailability() {
           <Text style={styles.summaryText}>Horas por día: {hoursPerDay}</Text>
           <Text style={styles.summaryText}>Total de horas: {totalDays * hoursPerDay}</Text>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
       <TouchableOpacity
         style={styles.reserveButton}
         onPress={handleReserve}

@@ -1,5 +1,23 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Alert, RefreshControl, SafeAreaView, SectionList, StatusBar, Modal, TextInput } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+  SafeAreaView,
+  SectionList,
+  StatusBar,
+  Modal,
+  TextInput,
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Keyboard,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Footer from '../components/footer';
 import { Theme } from '../constants/theme';
@@ -18,6 +36,8 @@ const AllBookedAppointments = () => {
   const [rating, setRating] = useState<number>(0);
   const [comment, setComment] = useState<string>('');
   const navigation = useNavigation();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(100)).current;
 
   const fetchUserBookings = useCallback(async () => {
     try {
@@ -41,6 +61,18 @@ const AllBookedAppointments = () => {
 
   useEffect(() => {
     fetchUserBookings();
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, [fetchUserBookings]);
 
   const onRefresh = useCallback(() => {
@@ -72,14 +104,29 @@ const AllBookedAppointments = () => {
   }, []);
 
   const handleCompleteBooking = async (booking) => {
-    try {
-      await updateBookingStatus(booking._id, 'completed');
-      setSelectedBooking(booking);
-      setModalVisible(true);
-    } catch (error) {
-      console.error('Error completing booking:', error);
-      Alert.alert('Error', 'Hubo un problema al completar la reserva');
-    }
+    Alert.alert(
+      "Completar Cita",
+      "¿Estás seguro de que quieres marcar esta cita como completada?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel"
+        },
+        { 
+          text: "Completar", 
+          onPress: async () => {
+            try {
+              await updateBookingStatus(booking._id, 'completed');
+              setSelectedBooking(booking);
+              setModalVisible(true);
+            } catch (error) {
+              console.error('Error completing booking:', error);
+              Alert.alert('Error', 'Hubo un problema al completar la reserva');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const handleSubmitReview = async () => {
@@ -109,7 +156,13 @@ const AllBookedAppointments = () => {
   };
 
   const renderBookingCard = ({ item }: { item: any }) => (
-    <View style={[styles.bookingCard, item.status === 'completed' && styles.completedBookingCard]}>
+    <Animated.View 
+      style={[
+        styles.bookingCard, 
+        item.status === 'completed' && styles.completedBookingCard,
+        { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
+      ]}
+    >
       <TouchableOpacity
         style={styles.cardContent}
         onPress={() => navigation.navigate('BookingDetails', { bookingId: item._id })}
@@ -160,7 +213,7 @@ const AllBookedAppointments = () => {
           <Text style={styles.reviewButtonText}>Dejar reseña</Text>
         </TouchableOpacity>
       )}
-    </View>
+    </Animated.View>
   );
 
   const renderSectionHeader = ({ section: { title } }) => (
@@ -176,48 +229,59 @@ const AllBookedAppointments = () => {
       visible={modalVisible}
       onRequestClose={() => setModalVisible(false)}
     >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Deja tu reseña</Text>
-          <View style={styles.ratingContainer}>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <TouchableOpacity
-                key={star}
-                onPress={() => setRating(star)}
-                style={styles.starButton}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.modalContainer}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPressOut={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <ScrollView contentContainerStyle={styles.modalScrollContent}>
+              <Text style={styles.modalTitle}>Deja tu reseña</Text>
+              <View style={styles.ratingContainer}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <TouchableOpacity
+                    key={star}
+                    onPress={() => setRating(star)}
+                    style={styles.starButton}
+                  >
+                    <Feather
+                      name={star <= rating ? "star" : "star"}
+                      size={36}
+                      color={star <= rating ? Theme.colors.bamxYellow : Theme.colors.bamxGrey}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <Text style={styles.ratingText}>
+                {rating === 0 ? 'Selecciona una calificación' : `Has seleccionado ${rating} ${rating === 1 ? 'estrella' : 'estrellas'}`}
+              </Text>
+              <TextInput
+                style={styles.commentInput}
+                placeholder="Escribe tu comentario aquí (opcional)"
+                placeholderTextColor={Theme.colors.bamxGrey}
+                multiline
+                numberOfLines={4}
+                value={comment}
+                onChangeText={setComment}
+              />
+              <TouchableOpacity 
+                style={[styles.submitButton, rating === 0 && styles.disabledButton]}
+                onPress={handleSubmitReview}
+                disabled={rating === 0}
               >
-                <Feather
-                  name={star <= rating ? "star" : "star"}
-                  size={30}
-                  color={star <= rating ? Theme.colors.bamxYellow : Theme.colors.bamxGrey}
-                />
+                <Text style={styles.submitButtonText}>Enviar reseña</Text>
               </TouchableOpacity>
-            ))}
+              <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
-          <Text style={styles.ratingText}>
-            {rating === 0 ? 'Selecciona una calificación' : `Has seleccionado ${rating} ${rating === 1 ? 'estrella' : 'estrellas'}`}
-          </Text>
-          <TextInput
-            style={styles.commentInput}
-            placeholder="Escribe tu comentario aquí (opcional)"
-            placeholderTextColor={Theme.colors.bamxGrey}
-            multiline
-            numberOfLines={4}
-            value={comment}
-            onChangeText={setComment}
-          />
-          <TouchableOpacity 
-            style={[styles.submitButton, rating === 0 && styles.disabledButton]}
-            onPress={handleSubmitReview}
-            disabled={rating === 0}
-          >
-            <Text style={styles.submitButtonText}>Enviar reseña</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
-            <Text style={styles.cancelButtonText}>Después</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
     </Modal>
   );
 
@@ -241,28 +305,30 @@ const AllBookedAppointments = () => {
           <ActivityIndicator size="large" color={Theme.colors.bamxGreen} />
         </View>
       ) : (
-        <SectionList
-          sections={groupBookings(bookings)}
-          renderItem={renderBookingCard}
-          renderSectionHeader={renderSectionHeader}
-          keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.listContainer}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[Theme.colors.bamxGreen]} />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyStateContainer}>
-              <Feather name="calendar" size={64} color={Theme.colors.bamxGrey} />
-              <Text style={styles.noBookingsText}>No tienes citas agendadas.</Text>
-              <TouchableOpacity
-                style={styles.newBookingButton}
-                onPress={() => navigation.navigate('WorkerList')}
-              >
-                <Text style={styles.newBookingButtonText}>Agendar una cita</Text>
-              </TouchableOpacity>
-            </View>
-          }
-        />
+        <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+          <SectionList
+            sections={groupBookings(bookings)}
+            renderItem={renderBookingCard}
+            renderSectionHeader={renderSectionHeader}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={styles.listContainer}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[Theme.colors.bamxGreen]} />
+            }
+            ListEmptyComponent={
+              <View style={styles.emptyStateContainer}>
+                <Feather name="calendar" size={64} color={Theme.colors.bamxGrey} />
+                <Text style={styles.noBookingsText}>No tienes citas agendadas.</Text>
+                <TouchableOpacity
+                  style={styles.newBookingButton}
+                  onPress={() => navigation.navigate('WorkerList')}
+                >
+                  <Text style={styles.newBookingButtonText}>Agendar una cita</Text>
+                </TouchableOpacity>
+              </View>
+            }
+          />
+        </Animated.View>
       )}
 
       {renderReviewModal()}
@@ -320,14 +386,14 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
   bookingCard: {
-    backgroundColor: Theme.colors.white,
+    backgroundColor:  Theme.colors.white,
     marginHorizontal: spacing * 2,
     marginVertical: spacing,
     borderRadius: spacing,
     ...Theme.shadows,
   },
   completedBookingCard: {
-    backgroundColor: '#D2D4C8', // Light grey
+    backgroundColor: '#F0F0F0',
   },
   cardContent: {
     flexDirection: 'row',
@@ -388,7 +454,7 @@ const styles = StyleSheet.create({
     marginTop: spacing * 2,
     marginBottom: spacing * 3,
   },
-  newBookingButton:  {
+  newBookingButton: {
     backgroundColor: Theme.colors.bamxGreen,
     paddingVertical: spacing,
     paddingHorizontal: spacing * 2,
@@ -415,16 +481,25 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  modalOverlay: {
+    flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: Theme.colors.white,
-    borderRadius: spacing * 2,
-    padding: spacing * 3,
-    width: '90%',
-    maxWidth: 400,
+    borderTopLeftRadius: spacing * 2,
+    borderTopRightRadius: spacing * 2,
+    paddingTop: spacing * 2,
+    paddingHorizontal: spacing * 2,
+    paddingBottom: Platform.OS === 'ios' ? spacing * 4 : spacing * 2,
+    maxHeight: '80%',
+  },
+  modalScrollContent: {
+    flexGrow: 1,
+    justifyContent: 'space-between',
   },
   modalTitle: {
     fontFamily: fonts.PoppinsSemiBold,

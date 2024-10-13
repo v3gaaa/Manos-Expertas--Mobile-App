@@ -1,4 +1,4 @@
-import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
+import { DefaultTheme, NavigationContainer, NavigationContainerRef } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import * as React from "react";
 import { Theme } from '../constants/theme';
@@ -35,8 +35,9 @@ const theme = {
 };
 
 export default function Navigation() {
+  const navigationRef = React.useRef<NavigationContainerRef<RootStackParamList> | null>(null);
   return (
-    <NavigationContainer theme={theme}>
+    <NavigationContainer theme={theme} ref={navigationRef}>
       <RootNavigator />
     </NavigationContainer>
   );

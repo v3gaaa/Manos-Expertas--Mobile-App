@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, Alert, TouchableOpacity, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, Image, StyleSheet, Alert, TouchableOpacity, ScrollView, SafeAreaView, ActivityIndicator, Animated } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { getWorkerById, getWorkerAverageRating, getWorkerReviewCount } from '../utils/apiHelper';
@@ -29,6 +29,7 @@ export default function WorkerDetail() {
   const [loading, setLoading] = useState(true);
   const [averageRating, setAverageRating] = useState<number>(0);
   const [reviewCount, setReviewCount] = useState<number>(0);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const fetchWorkerData = async () => {
@@ -52,13 +53,18 @@ export default function WorkerDetail() {
         Alert.alert('Error', 'Ocurrió un problema al intentar obtener los datos del trabajador');
       } finally {
         setLoading(false);
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }).start();
       }
     };
 
     fetchWorkerData();
-  }, [workerId]);
+  }, [workerId, fadeAnim]);
 
-  const renderStars = (rating: number) => {
+  const renderStars = useCallback((rating: number) => {
     return Array(5).fill(0).map((_, i) => (
       <Feather 
         key={i} 
@@ -67,9 +73,9 @@ export default function WorkerDetail() {
         color={i < Math.floor(rating) ? Theme.colors.bamxYellow : Theme.colors.bamxGrey} 
       />
     ));
-  };
+  }, []);
 
-  const renderReviews = () => {
+  const renderReviews = useCallback(() => {
     if (!workerData?.reviews || workerData.reviews.length === 0) {
       return (
         <Text style={styles.noReviewsText}>Este trabajador aún no tiene reseñas.</Text>
@@ -87,7 +93,7 @@ export default function WorkerDetail() {
         <Text style={styles.reviewComment}>{review.comment}</Text>
       </View>
     ));
-  };
+  }, [workerData, renderStars]);
 
   if (loading) {
     return (
@@ -107,7 +113,10 @@ export default function WorkerDetail() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <Animated.ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        style={{ opacity: fadeAnim }}
+      >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Feather name="arrow-left" size={24} color={Theme.colors.white} />
@@ -133,11 +142,15 @@ export default function WorkerDetail() {
           <Text style={styles.sectionTitle}>Reseñas</Text>
           {renderReviews()}
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
       
       <TouchableOpacity 
         style={styles.calendarButton} 
-        onPress={() => navigation.navigate('CalendarAvailability', { workerId: workerData._id })}
+        onPress={() => navigation.navigate('CalendarAvailability', { 
+          workerId: workerData._id,
+          workerName: workerData.name,
+          workerLastName: workerData.lastName
+        })}
       >
         <Feather name="calendar" size={24} color={Theme.colors.white} />
         <Text style={styles.calendarButtonText}>Agendar cita</Text>
@@ -283,6 +296,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing * 2,
     borderRadius: spacing * 3,
     margin: spacing * 2,
+    ...Theme.shadows,
   },
   calendarButtonText: {
     color: Theme.colors.white,

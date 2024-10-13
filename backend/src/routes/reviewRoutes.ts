@@ -165,4 +165,39 @@ router.delete('/reviews/:id', async (req: Request, res: Response) => {
     }
 });
 
+// Get average ratings for multiple workers
+router.post('/reviews/workers/average-ratings', async (req: Request, res: Response) => {
+    const { workerIds } = req.body;
+    if (!workerIds || !Array.isArray(workerIds)) {
+        return res.status(400).json({ message: 'workerIds should be an array of IDs' });
+    }
+
+    try {
+        const objectIds = workerIds.map(id => new mongoose.Types.ObjectId(id));
+        const ratings = await Review.aggregate([
+            { $match: { worker: { $in: objectIds } } },
+            {
+                $group: {
+                    _id: '$worker',
+                    averageRating: { $avg: '$rating' }
+                }
+            }
+        ]);
+
+        const response = ratings.map(r => ({
+            workerId: r._id,
+            averageRating: r.averageRating ? Number(r.averageRating.toFixed(1)) : 0
+        }));
+
+        res.json(response);
+    } catch (error) {
+        console.error('Error fetching average ratings:', error);
+        res.status(500).json({ message: 'Error fetching average ratings' });
+    }
+});
+
+
+
+
+
 export default router;

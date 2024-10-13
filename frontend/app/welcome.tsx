@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, View, Text, SafeAreaView, Image, Dimensions, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, View, Text, SafeAreaView, Image, Dimensions, TouchableOpacity, ScrollView, Animated } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import spacing from '../constants/spacing';
@@ -11,10 +11,28 @@ const { width, height } = Dimensions.get('window');
 type Props = NativeStackScreenProps<RootStackParamList, 'Welcome'>;
 
 export default function Welcome({ navigation: { navigate } }: Props) {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        <View style={styles.content}>
+        <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
           <View style={styles.imageContainer}>
             <Image
               style={styles.image}
@@ -42,7 +60,7 @@ export default function Welcome({ navigation: { navigate } }: Props) {
               <Text style={[styles.buttonText, styles.registerButtonText]}>Regístrate</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </Animated.View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -55,17 +73,18 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flexGrow: 1,
-    justifyContent: 'space-between', // Ensure the content grows to allow scrolling
+    justifyContent: 'center',
   },
   content: {
     flex: 1,
     justifyContent: 'space-between',
-    padding: spacing,
+    padding: spacing * 2,
   },
   imageContainer: {
     height: height * 0.4,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: spacing * 3,
   },
   image: {
     width: '100%',
@@ -73,7 +92,7 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     alignItems: 'center',
-    marginVertical: spacing * 2,
+    marginBottom: spacing * 3,
   },
   mainTitle: {
     fontFamily: fonts.CocoSharp,
@@ -90,25 +109,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing,
   },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     marginTop: spacing * 2,
   },
   button: {
-    flex: 1,
     borderRadius: spacing,
     paddingVertical: spacing * 1.2,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: spacing,
     ...Theme.shadows,
   },
   loginButton: {
     backgroundColor: Theme.colors.bamxYellow,
-    marginRight: spacing,
   },
   registerButton: {
     backgroundColor: Theme.colors.bamxGreen,
-    marginLeft: spacing,
   },
   buttonText: {
     fontFamily: fonts.PoppinsSemiBold,

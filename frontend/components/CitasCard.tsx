@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
-import { icons } from '../constants/icons';
+import { View, Text, StyleSheet } from 'react-native';
+import { StarIcon } from 'lucide-react-native';
 
 type CitasCardProps = {
   name: string;
@@ -11,89 +11,86 @@ type CitasCardProps = {
   rating: number;
 };
 
-const CitasCard = ({ name, lastName, profession, date, reviews, rating }: CitasCardProps) => {
+export default function CitasCard({ name, lastName, profession, date, reviews, rating }: CitasCardProps) {
+  const getInitials = (name: string, lastName: string) => {
+    return `${name.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
   return (
     <View style={styles.card}>
-      <View style={styles.imageContainer}>
-        <Image
-          source={{
-            uri: 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fstatic-00.iconduck.com%2Fassets.00%2Fuser-square-icon-512x512-d7zixn6s.png&f=1&nofb=1&ipt=98f8cacaca0cd250471a94c44b2e7361d69981a275b596c37009badd6c218564&ipo=images',
-          }}
-          style={styles.image}
-        />
+      <View style={styles.initialsContainer}>
+        <Text style={styles.initials}>{getInitials(name, lastName)}</Text>
       </View>
       <View style={styles.textContainer}>
-        <Text style={styles.name}>{`${name} ${lastName}`}</Text>
-        <Text style={styles.profession}>{profession}</Text>
+        <Text style={styles.name} numberOfLines={1}>{`${name} ${lastName}`}</Text>
+        <Text style={styles.profession} numberOfLines={1}>{profession}</Text>
         <Text style={styles.date}>{date}</Text>
       </View>
       <View style={styles.ratingContainer}>
-        {icons.StarFull(16, '#FFD33C')}
-        <Text style={styles.rating}>{`${rating}`}</Text>
+        <StarIcon size={16} color="#FFD33C" />
+        <Text style={styles.rating}>{rating.toFixed(1)}</Text>
+        <Text style={styles.reviews}>({reviews} reviews)</Text>
       </View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#14A436',
     borderRadius: 12,
     width: 168,
-    height: 'auto', // Set to auto to handle content overflow
-    minHeight: 110, // Minimum height of 110px
+    minHeight: 110,
     padding: 8,
-    position: 'relative',
+    justifyContent: 'space-between',
   },
-  imageContainer: {
-    position: 'absolute',
+  initialsContainer: {
     width: 52,
     height: 52,
-    left: 8,
-    top: 8,
-    //backgroundColor: '#E8E8E8',
+    backgroundColor: '#0D7A26',
     borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  image: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 8,
+  initials: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
   textContainer: {
-    position: 'absolute',
-    left: 76,
-    top: 8,
-    right: 8,
-    alignItems: 'flex-end',
+    marginLeft: 60,
+    marginTop: -52,
   },
   name: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#FFFFFF',
   },
   profession: {
     fontSize: 10,
-    fontWeight: '300',
+    fontWeight: '400',
     color: '#F2F2F7',
-    marginTop: 5,
+    marginTop: 4,
   },
   date: {
     fontSize: 9,
     color: '#F2F2F7',
-    marginTop: 5,
+    marginTop: 4,
   },
   ratingContainer: {
     flexDirection: 'row',
-    position: 'absolute',
-    left: 8,
-    top: 74, // Adjusted to make sure it's right under the image
     alignItems: 'center',
+    marginTop: 8,
   },
   rating: {
     fontSize: 12,
+    fontWeight: '600',
     color: '#EDEDFC',
-    marginLeft: 5,
+    marginLeft: 4,
+  },
+  reviews: {
+    fontSize: 10,
+    color: '#F2F2F7',
+    marginLeft: 4,
   },
 });
-
-export default CitasCard;

@@ -26,21 +26,23 @@ app.use(cors());
 app.use(express.json({ limit: '300kb' })); // Body limit is 300kb to prevent large uploads on a Ddos attack
 
 
+
 // Rate limiting to prevent DDoS attacks
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  windowMs: 30 * 60 * 1000, // 30 minutes
+  max: 300, // Allow 300 requests per windowMs
   message: 'Too many requests from this IP, please try again later.'
 });
-app.use('/api', limiter);
-
 
 // Speed limiting to prevent brute force attacks
 const speedLimiter = slowDown({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  delayAfter: 50, // Allow 50 requests per 15 minutes, then delay each request
-  delayMs: () => 500 // Cada solicitud por encima del límite tendrá un retraso fijo de 500ms
+  windowMs: 30 * 60 * 1000, // 30 minutes
+  delayAfter: 300, // Allow 300 requests per 30 minutes, then delay each request
+  delayMs: () => 300, // Cada solicitud por encima del límite tendrá un retraso fijo de 300ms
 });
+
+// Apply to all requests
+app.use('/api', limiter);
 app.use('/api', speedLimiter);
 
 

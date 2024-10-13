@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   ScrollView,
   Platform,
@@ -10,12 +10,14 @@ import {
   KeyboardAvoidingView,
   Image,
   TouchableOpacity,
-  ActivityIndicator
+  ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { getUserByEmail, updateUser, uploadImage } from '../utils/apiHelper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 import Footer from '../components/footer';
 import AppTextInput from '../components/appTextInput';
@@ -29,7 +31,6 @@ import {
   sanitizeInput, 
   sanitizePhone,
   getValidationErrorMessage,
-  escapeSQLInput
 } from '../utils/inputValidation';
 
 interface IUser {
@@ -61,12 +62,55 @@ const UserProfile = () => {
     admin: false,
     salt: '',
   });
+  const [originalUser, setOriginalUser] = useState<IUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const navigation = useNavigation();
 
   useEffect(() => {
     loadUser();
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
   }, []);
+
+  useEffect(() => {
+    if (originalUser) {
+      const hasChanges = JSON.stringify(user) !== JSON.stringify(originalUser);
+      setHasUnsavedChanges(hasChanges);
+    }
+  }, [user, originalUser]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+        if (!hasUnsavedChanges) {
+          return;
+        }
+
+        e.preventDefault();
+
+        Alert.alert(
+          'Discard changes?',
+          'You have unsaved changes. Are you sure you want to discard them and leave the screen?',
+          [
+            { text: "Don't leave", style: 'cancel', onPress: () => {} },
+            {
+              text: 'Discard',
+              style: 'destructive',
+              onPress: () => navigation.dispatch(e.data.action),
+            },
+          ]
+        );
+      });
+
+      return unsubscribe;
+    }, [navigation, hasUnsavedChanges])
+  );
 
   const loadUser = async () => {
     try {
@@ -74,7 +118,10 @@ const UserProfile = () => {
       if (storedUser) {
         const userData = JSON.parse(storedUser);
         const userProfile = await getUserByEmail(userData.email);
-        if (userProfile) setUser(userProfile);
+        if (userProfile) {
+          setUser(userProfile);
+          setOriginalUser(userProfile);
+        }
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
@@ -131,6 +178,8 @@ const UserProfile = () => {
         await AsyncStorage.setItem('user', JSON.stringify(result));
         Alert.alert('Success', 'User profile updated successfully.');
         setUser(result);
+        setOriginalUser(result);
+        setHasUnsavedChanges(false);
       }
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -173,7 +222,8 @@ const UserProfile = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading...</Text>
+        <ActivityIndicator size="large" color={Theme.colors.bamxYellow} />
+        <Text style={styles.loadingText}>Loading profile...</Text>
       </View>
     );
   }
@@ -185,7 +235,11 @@ const UserProfile = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
-        <ScrollView contentContainerStyle={styles.scrollView} keyboardShouldPersistTaps="handled">
+        <Animated.ScrollView 
+          contentContainerStyle={styles.scrollView} 
+          keyboardShouldPersistTaps="handled"
+          style={{ opacity: fadeAnim }}
+        >
           <View style={styles.container}>
             <View style={styles.profilePictureContainer}>
               <Image 
@@ -260,11 +314,17 @@ const UserProfile = () => {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.updateButton} onPress={handleUpdateProfile}>
-              <Text style={styles.updateButtonText}>Update Profile</Text>
+            <TouchableOpacity 
+              style={[styles.updateButton, hasUnsavedChanges && styles.updateButtonActive]} 
+              onPress={handleUpdateProfile}
+              disabled={!hasUnsavedChanges}
+            >
+              <Text style={styles.updateButtonText}>
+                {hasUnsavedChanges ? 'Save Changes' : 'No Changes to Save'}
+              </Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </Animated.ScrollView>
         <Footer />
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -295,6 +355,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.PoppinsMedium,
     fontSize: Theme.size.md,
     color: Theme.colors.bamxGreen,
+    marginTop: spacing,
   },
   profilePictureContainer: {
     alignItems: 'center',
@@ -360,7 +421,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing,
   },
   updateButton: {
-    backgroundColor: Theme.colors.bamxYellow,
+    backgroundColor: Theme.colors.bamxGrey,
     padding: spacing * 1.5,
     borderRadius: spacing,
     alignItems: 'center',
@@ -374,6 +435,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  updateButtonActive: {
+    backgroundColor: Theme.colors.bamxYellow,
   },
   updateButtonText: {
     fontFamily: fonts.PoppinsSemiBold,

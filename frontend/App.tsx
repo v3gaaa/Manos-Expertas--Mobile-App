@@ -42,8 +42,10 @@ export default function App() {
       </SafeAreaView>
     );
   }
+  
   const styles = StyleSheet.create({
     container: {
       flex: 1,
+      backgroundColor: '#FFFFFF', // Cambiar color de fondo a blanco para mezclar con el footer
     },
   });
