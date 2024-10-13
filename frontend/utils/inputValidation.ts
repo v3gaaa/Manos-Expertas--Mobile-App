@@ -1,4 +1,4 @@
-// SQL Injection Prevention
+// SQL Injection Prevention 
 export const escapeSQLInput = (input: string): string => {
   if (typeof input !== 'string') {
     return input;
@@ -23,7 +23,7 @@ export const escapeSQLInput = (input: string): string => {
 
 // Enhanced sanitizeInput function
 export const sanitizeInput = (input: string): string => {
-  // Remove any HTML tags, trim whitespace, and apply SQL injection prevention
+  // Remove any HTML tags and apply SQL injection prevention
   return escapeSQLInput(input.replace(/<[^>]*>?/gm, '').trim());
 };
 
@@ -38,6 +38,7 @@ export const sanitizePhone = (phone: string): string => {
   // Remove any non-digit characters and apply SQL injection prevention
   return escapeSQLInput(phone.replace(/\D/g, ''));
 };
+
 // Regular expressions for validation
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const nameRegex = /^[a-zA-Z\s'-]+$/;
