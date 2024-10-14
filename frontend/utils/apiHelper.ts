@@ -660,3 +660,48 @@ export async function getWorkerAverageRatings(workerIds: string[]) {
   }
 }
 
+export async function requestVerification(email: string) {
+  try {
+    const response = await fetch(`${API_URL}/request-verification`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { success: false, status: response.status, message: errorData.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error in requestVerification:', error);
+    return { success: false, status: 500, message: 'Error al solicitar verificación' };
+  }
+}
+
+export async function verifyAndRegister(user: IUser, code: string) {
+  try {
+    const response = await fetch(`${API_URL}/verify-and-register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ...user, code }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { success: false, status: response.status, message: errorData.message };
+    }
+
+    const data = await response.json();
+    return { success: true, ...data };
+  } catch (error) {
+    console.error('Error in verifyAndRegister:', error);
+    return { success: false, status: 500, message: 'Error en la verificación y registro' };
+  }
+}
+

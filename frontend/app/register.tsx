@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView, StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Animated } from 'react-native';
+import React, { useState } from 'react';
+import { SafeAreaView, StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { Theme } from '../constants/theme';
 import spacing from '../constants/spacing';
 import fonts from '../constants/fonts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import AppTextInput from '../components/appTextInput';
-import { signUp } from '../utils/apiHelper';
+import { requestVerification, verifyAndRegister } from '../utils/apiHelper';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { 
   isValidEmail, 
@@ -25,29 +25,42 @@ const Register: React.FC = () => {
   const [name, setName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [step, setStep] = useState('details'); // 'details' or 'verification'
   const navigation = useNavigation();
-  const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
-  }, []);
+  const handleRequestVerification = async () => {
+    const sanitizedEmail = sanitizeEmail(email);
+    
+    if (!isValidEmail(sanitizedEmail)) {
+      Alert.alert('Error', getValidationErrorMessage('email'));
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await requestVerification(sanitizedEmail);
+      if (response.success) {
+        setStep('verification');
+        Alert.alert('Éxito', 'Código de verificación enviado a su correo');
+      } else {
+        Alert.alert('Error', response.message);
+      }
+    } catch (error) {
+      console.error('Verification request error:', error);
+      Alert.alert('Error', 'Ocurrió un problema al enviar el código de verificación');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleRegister = async () => {
     const sanitizedEmail = sanitizeEmail(email);
     const sanitizedName = sanitizeInput(name);
     const sanitizedLastName = sanitizeInput(lastName);
     const sanitizedPhone = sanitizePhone(phone);
-  
-    if (!isValidEmail(sanitizedEmail)) {
-      Alert.alert('Error', getValidationErrorMessage('email'));
-      return;
-    }
   
     if (!isValidPassword(password)) {
       Alert.alert('Error', getValidationErrorMessage('password'));
@@ -88,11 +101,9 @@ const Register: React.FC = () => {
         salt: ''
       };
   
-      const response = await signUp(newUser);
+      const response = await verifyAndRegister(newUser, verificationCode);
   
       if (response.success) {
-        await AsyncStorage.removeItem('authToken');
-        await AsyncStorage.removeItem('user');
         await AsyncStorage.setItem('authToken', response.token);
         await AsyncStorage.setItem('user', JSON.stringify(response.user));
         Alert.alert('Éxito', 'Usuario registrado exitosamente');
@@ -116,67 +127,85 @@ const Register: React.FC = () => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
         <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-          <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
+          <View style={styles.content}>
             <View style={styles.header}>
               <Text style={styles.mainTitle}>Crea una cuenta</Text>
               <Text style={styles.subTitle}>Ingresa y explora todos los servicios que tenemos para ti</Text>
             </View>
-            <View style={styles.form}>
-              <AppTextInput
-                placeholder="Email"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              <AppTextInput
-                placeholder="Nombre"
-                value={name}
-                onChangeText={setName}
-              />
-              <AppTextInput
-                placeholder="Apellido"
-                value={lastName}
-                onChangeText={setLastName}
-              />
-              <AppTextInput
-                placeholder="Teléfono"
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-              />
-              <View style={styles.passwordContainer}>
+            {step === 'details' ? (
+              <View style={styles.form}>
                 <AppTextInput
-                  placeholder="Contraseña"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
+                  placeholder="Email"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
                 />
-                <TouchableOpacity
-                  style={styles.eyeIcon}
-                  onPress={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff color={Theme.colors.bamxGrey} size={24} />
+                <AppTextInput
+                  placeholder="Nombre"
+                  value={name}
+                  onChangeText={setName}
+                />
+                <AppTextInput
+                  placeholder="Apellido"
+                  value={lastName}
+                  onChangeText={setLastName}
+                />
+                <AppTextInput
+                  placeholder="Teléfono"
+                  value={phone}
+                  onChangeText={setPhone}
+                  keyboardType="phone-pad"
+                />
+                <View style={styles.passwordContainer}>
+                  <AppTextInput
+                    placeholder="Contraseña"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeIcon}
+                    onPress={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff color={Theme.colors.bamxGrey} size={24} />
+                    ) : (
+                      <Eye color={Theme.colors.bamxGrey} size={24} />
+                    )}
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity onPress={handleRequestVerification} style={styles.btn} disabled={isLoading}>
+                  {isLoading ? (
+                    <ActivityIndicator color={Theme.colors.white} />
                   ) : (
-                    <Eye color={Theme.colors.bamxGrey} size={24} />
+                    <Text style={styles.btnText}>Solicitar Verificación</Text>
                   )}
                 </TouchableOpacity>
               </View>
-            </View>
-            <TouchableOpacity onPress={handleRegister} style={styles.btn} disabled={isLoading}>
-              {isLoading ? (
-                <ActivityIndicator color={Theme.colors.white} />
-              ) : (
-                <Text style={styles.btnText}>Regístrate</Text>
-              )}
-            </TouchableOpacity>
+            ) : (
+              <View style={styles.form}>
+                <AppTextInput
+                  placeholder="Código de Verificación"
+                  value={verificationCode}
+                  onChangeText={setVerificationCode}
+                  keyboardType="number-pad"
+                />
+                <TouchableOpacity onPress={handleRegister} style={styles.btn} disabled={isLoading}>
+                  {isLoading ? (
+                    <ActivityIndicator color={Theme.colors.white} />
+                  ) : (
+                    <Text style={styles.btnText}>Registrarse</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
             <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginLink}>
               <Text style={styles.loginLinkText}>
                 Ya tengo una cuenta
               </Text>
             </TouchableOpacity>
-          </Animated.View>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

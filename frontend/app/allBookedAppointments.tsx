@@ -321,7 +321,7 @@ const AllBookedAppointments = () => {
                 <Text style={styles.noBookingsText}>No tienes citas agendadas.</Text>
                 <TouchableOpacity
                   style={styles.newBookingButton}
-                  onPress={() => navigation.navigate('WorkerList')}
+                  onPress={() => navigation.navigate('SearchScreen', { query: 'todos' })}
                 >
                   <Text style={styles.newBookingButtonText}>Agendar una cita</Text>
                 </TouchableOpacity>

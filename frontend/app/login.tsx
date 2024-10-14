@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SafeAreaView, StyleSheet, View, Alert, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, Animated } from 'react-native';
 import { Theme } from '../constants/theme';
 import spacing from '../constants/spacing';
@@ -8,45 +8,113 @@ import { useNavigation } from '@react-navigation/native';
 import AppTextInput from '../components/appTextInput';
 import { logIn } from '../utils/apiHelper';
 import { Eye, EyeOff } from 'lucide-react-native';
+import { sanitizeEmail, sanitizeInput, isValidEmail } from '../utils/inputValidation';
+
+const MAX_LOGIN_ATTEMPTS = 15;
+const LOCK_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [lockoutTime, setLockoutTime] = useState<number | null>(null);
   const navigation = useNavigation();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
-  React.useEffect(() => {
+  useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 500,
       useNativeDriver: true,
     }).start();
+
+    // Load login attempts from AsyncStorage
+    loadLoginAttempts();
   }, []);
 
+  const loadLoginAttempts = async () => {
+    try {
+      const attempts = await AsyncStorage.getItem('loginAttempts');
+      const lockout = await AsyncStorage.getItem('lockoutTime');
+      if (attempts) setLoginAttempts(parseInt(attempts, 10));
+      if (lockout) setLockoutTime(parseInt(lockout, 10));
+    } catch (error) {
+      console.error('Error loading login attempts:', error);
+    }
+  };
+
+  const saveLoginAttempts = async (attempts: number, lockout: number | null) => {
+    try {
+      await AsyncStorage.setItem('loginAttempts', attempts.toString());
+      if (lockout) {
+        await AsyncStorage.setItem('lockoutTime', lockout.toString());
+      } else {
+        await AsyncStorage.removeItem('lockoutTime');
+      }
+    } catch (error) {
+      console.error('Error saving login attempts:', error);
+    }
+  };
+
   const handleLogIn = async () => {
-    if (!email.trim() || !password.trim()) {
+    const sanitizedEmail = sanitizeEmail(email);
+    const sanitizedPassword = sanitizeInput(password);
+
+    if (!sanitizedEmail.trim() || !sanitizedPassword.trim()) {
       Alert.alert('Error', 'Por favor, ingresa tu email y contraseña');
       return;
     }
 
+    if (!isValidEmail(sanitizedEmail)) {
+      Alert.alert('Error', 'Por favor, ingresa un correo electrónico válido');
+      return;
+    }
+
+    if (loginAttempts >= MAX_LOGIN_ATTEMPTS) {
+      const currentTime = new Date().getTime();
+      if (lockoutTime && currentTime < lockoutTime) {
+        const remainingTime = Math.ceil((lockoutTime - currentTime) / 60000);
+        Alert.alert('Error', `Tu cuenta está bloqueada. Intenta de nuevo en ${remainingTime} minutos.`);
+        return;
+      } else {
+        // Reset attempts if lockout period has passed
+        setLoginAttempts(0);
+        setLockoutTime(null);
+        await saveLoginAttempts(0, null);
+      }
+    }
+
     setIsLoading(true);
     try {
-      const response = await logIn(email, password);
+      const response = await logIn(sanitizedEmail, sanitizedPassword);
   
       if (response.success) {
         const { token, user } = response;
         await AsyncStorage.setItem('authToken', token);
         await AsyncStorage.setItem('user', JSON.stringify(user));
         Alert.alert('Éxito', `Inicio de sesión exitoso. Bienvenido, ${user.name}!`);
+        setLoginAttempts(0);
+        setLockoutTime(null);
+        await saveLoginAttempts(0, null);
         if (user.admin) {
           navigation.navigate('AdminHome');
         } else {
           navigation.navigate('Home');
         }
       } else {
-        Alert.alert('Error', response.message);
+        const newAttempts = loginAttempts + 1;
+        setLoginAttempts(newAttempts);
+        if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
+          const newLockoutTime = new Date().getTime() + LOCK_DURATION;
+          setLockoutTime(newLockoutTime);
+          await saveLoginAttempts(newAttempts, newLockoutTime);
+          Alert.alert('Error', 'Has excedido el número máximo de intentos. Tu cuenta ha sido bloqueada por 30 minutos.');
+        } else {
+          await saveLoginAttempts(newAttempts, null);
+          Alert.alert('Error', `Credenciales incorrectas. Intentos restantes: ${MAX_LOGIN_ATTEMPTS - newAttempts}`);
+        }
       }
     } catch (error) {
       console.error('Login error:', error);

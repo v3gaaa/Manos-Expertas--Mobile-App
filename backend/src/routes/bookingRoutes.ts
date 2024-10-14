@@ -1,8 +1,19 @@
 import express, { Request, Response } from 'express';
 import Booking from '../models/Booking';
 import Worker from '../models/Worker';
+import User from '../models/User';
+import nodemailer from 'nodemailer';
 
 const router = express.Router();
+
+// Configurar transporte de nodemailer para enviar correos
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
 
 // Obtener todas las reservas
 router.get('/bookings', async (_req: Request, res: Response) => {
@@ -45,12 +56,99 @@ router.post('/bookings', async (req, res) => {
     });
 
     await newBooking.save();
+
+    // Obtener información del trabajador y usuario
+    const workerInfo = await Worker.findById(worker);
+    const userInfo = await User.findById(user);
+
+    if (!workerInfo || !userInfo) {
+      throw new Error('Worker or User not found');
+    }
+
+    // Enviar correo con los detalles de la reserva
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: userInfo.email,
+      subject: 'Confirmación de tu reserva en Manos Expertas',
+      html: `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Confirmación de Reserva</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    color: #333333;
+                    max-width: 600px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+                .header {
+                    background-color: #F7B32B;
+                    color: #ffffff;
+                    text-align: center;
+                    padding: 20px;
+                    border-radius: 5px 5px 0 0;
+                }
+                .content {
+                    background-color: #ffffff;
+                    padding: 20px;
+                    border-radius: 0 0 5px 5px;
+                    border: 1px solid #e0e0e0;
+                }
+                .details {
+                    background-color: #f5f5f5;
+                    padding: 15px;
+                    border-radius: 5px;
+                    margin-top: 20px;
+                }
+                .footer {
+                    text-align: center;
+                    margin-top: 20px;
+                    font-size: 12px;
+                    color: #888888;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>Confirmación de Reserva</h1>
+            </div>
+            <div class="content">
+                <p>Hola ${userInfo.name},</p>
+                <p>Tu reserva ha sido confirmada. Aquí están los detalles:</p>
+                <div class="details">
+                    <p><strong>Trabajador:</strong> ${workerInfo.name} ${workerInfo.lastName}</p>
+                    <p><strong>Fecha de inicio:</strong> ${new Date(startDate).toLocaleDateString()}</p>
+                    <p><strong>Fecha de fin:</strong> ${new Date(endDate).toLocaleDateString()}</p>
+                    <p><strong>Horas por día:</strong> ${hoursPerDay}</p>
+                    <p><strong>Total de horas:</strong> ${totalHours}</p>
+                </div>
+                <p>Podras encontrar la informacion para contactar al trabajador dentro de tu aplicacion.</p>
+                <p>¡Gracias por usar Manos Expertas!</p>
+            </div>
+            <div class="footer">
+                <p>Este es un correo automático, por favor no respondas a esta dirección.</p>
+            </div>
+        </body>
+        </html>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('Booking confirmation email sent to:', userInfo.email);
+
     res.status(201).json(newBooking);
     console.log('Booking created successfully:', newBooking);
   } catch (error) {
+    console.error('Error creating booking:', error);
     res.status(400).json({ message: (error as Error).message });
   }
 });
+
 
 // Obtener todas las reservas de un trabajador
 router.get('/bookings/worker/:workerId', async (req, res) => {

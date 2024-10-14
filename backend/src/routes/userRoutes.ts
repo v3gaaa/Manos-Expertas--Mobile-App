@@ -62,6 +62,77 @@ router.post('/users', async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, salt);
     const user = new User({ name, lastName, email, password: hashedPassword, phoneNumber, profilePicture, address });
     const newUser = await user.save();
+
+    // Enviar correo de bienvenida
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Bienvenido a Manos Expertas',
+      html: `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Bienvenido a Manos Expertas</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    color: #333333;
+                    max-width: 600px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+                .header {
+                    background-color: #F7B32B;
+                    color: #ffffff;
+                    text-align: center;
+                    padding: 20px;
+                    border-radius: 5px 5px 0 0;
+                }
+                .content {
+                    background-color: #ffffff;
+                    padding: 20px;
+                    border-radius: 0 0 5px 5px;
+                    border: 1px solid #e0e0e0;
+                }
+                .footer {
+                    text-align: center;
+                    margin-top: 20px;
+                    font-size: 12px;
+                    color: #888888;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>Bienvenido a Manos Expertas</h1>
+            </div>
+            <div class="content">
+                <p>Hola ${name},</p>
+                <p>¡Gracias por unirte a Manos Expertas! Estamos emocionados de tenerte como parte de nuestra comunidad.</p>
+                <p>Con tu cuenta, podrás:</p>
+                <ul>
+                    <li>Buscar profesionales calificados para tus proyectos</li>
+                    <li>Programar servicios fácilmente</li>
+                    <li>Gestionar tus reservas y pagos</li>
+                </ul>
+                <p>Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos.</p>
+                <p>¡Esperamos que disfrutes de nuestros servicios!</p>
+                <p>Saludos,<br>El equipo de Manos Expertas</p>
+            </div>
+            <div class="footer">
+                <p>Este es un correo automático, por favor no respondas a esta dirección.</p>
+            </div>
+        </body>
+        </html>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('Welcome email sent to:', email);
+
     res.status(201).json(newUser);
   } catch (error) {
     console.error('Error creating user:', error);
@@ -291,6 +362,88 @@ router.post('/reset-password', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error restableciendo la contraseña:', error);
     res.status(500).json({ message: 'Error al restablecer la contraseña' });
+  }
+});
+
+
+
+// Generate a random 6-digit code
+function generateVerificationCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// Store verification codes temporarily (consider using Redis for production)
+const verificationCodes: { [email: string]: string } = {};
+
+// Send verification email
+async function sendVerificationEmail(email: string, code: string) {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'Email Verification for Manos Expertas',
+    html: `
+      <h1>Verify Your Email</h1>
+      <p>Your verification code is: <strong>${code}</strong></p>
+      <p>Please enter this code in the app to complete your registration.</p>
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+}
+
+// Request email verification
+router.post('/request-verification', async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  try {
+    // Check if email already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email already registered' });
+    }
+
+    const code = generateVerificationCode();
+    verificationCodes[email] = code;
+
+    await sendVerificationEmail(email, code);
+
+    res.json({ message: 'Verification code sent' });
+  } catch (error) {
+    console.error('Error requesting verification:', error);
+    res.status(500).json({ message: 'Error sending verification code' });
+  }
+});
+
+// Verify email and complete registration
+router.post('/verify-and-register', async (req: Request, res: Response) => {
+  const { email, code, ...userData } = req.body;
+
+  try {
+    if (verificationCodes[email] !== code) {
+      return res.status(400).json({ message: 'Invalid verification code' });
+    }
+
+    // Create new user
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(userData.password, salt);
+    const user = new User({ 
+      ...userData, 
+      email, 
+      password: hashedPassword,
+      salt: salt  // Add the salt to the user object
+    });
+    const newUser = await user.save();
+
+    // Clear verification code
+    delete verificationCodes[email];
+
+    // Generate token
+    const token = generateToken(newUser);
+
+    res.status(201).json({ user: newUser, token });
+  } catch (error) {
+    console.error('Error verifying and registering:', error);
+    res.status(500).json({ message: 'Error registering user', error: (error as any).message });
   }
 });
 
