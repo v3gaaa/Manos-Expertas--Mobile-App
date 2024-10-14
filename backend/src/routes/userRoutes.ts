@@ -1,5 +1,7 @@
 import express, { Request, Response } from 'express';
 import User, { IUser } from '../models/User';
+import Booking from '../models/Booking';
+import Review from '../models/Review';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcrypt';
@@ -157,12 +159,34 @@ router.put('/users/:id', async (req: Request, res: Response) => {
 router.delete('/users/:id', async (req: Request, res: Response) => {
   console.log(`Deleting user by ID: ${req.params.id}`);
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) return res.status(404).json({ message: 'User not found' });
-    res.json({ message: 'User deleted' });
+    const session = await User.startSession();
+    session.startTransaction();
+
+    try {
+      // Delete associated bookings
+      await Booking.deleteMany({ user: req.params.id }).session(session);
+
+      // Delete associated reviews
+      await Review.deleteMany({ user: req.params.id }).session(session);
+
+      // Delete the user
+      const user = await User.findByIdAndDelete(req.params.id).session(session);
+      if (!user) {
+        await session.abortTransaction();
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      await session.commitTransaction();
+      res.json({ message: 'User and associated data deleted successfully' });
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
   } catch (error) {
-    console.error('Error deleting user:', error);
-    res.status(500).json({ message: error });
+    console.error('Error deleting user and associated data:', error);
+    res.status(500).json({ message: 'Error deleting user and associated data' });
   }
 });
 

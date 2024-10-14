@@ -13,7 +13,7 @@ import {
   ActivityIndicator,
   Animated,
 } from 'react-native';
-import { getUserByEmail, updateUser, uploadImage } from '../utils/apiHelper';
+import { getUserByEmail, updateUser, uploadImage, deleteAccount } from '../utils/apiHelper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
@@ -34,6 +34,7 @@ import {
 } from '../utils/inputValidation';
 
 interface IUser {
+  _id?: string;
   name: string;
   lastName: string;
   email: string;
@@ -130,6 +131,34 @@ const UserProfile = () => {
       setLoading(false);
     }
   };
+
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      'Eliminar cuenta',
+      '¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteAccount(user._id!);
+              await AsyncStorage.removeItem('user');
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+              });
+            } catch (error) {
+              console.error('Error deleting account:', error);
+              Alert.alert('Error', 'No se pudo eliminar la cuenta. Por favor, inténtalo de nuevo.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
 
   const handleUpdateProfile = async () => {
     const sanitizedName = sanitizeInput(user.name);
@@ -323,6 +352,13 @@ const UserProfile = () => {
                 {hasUnsavedChanges ? 'Save Changes' : 'No Changes to Save'}
               </Text>
             </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.deleteAccountButton} 
+              onPress={handleDeleteAccount}
+            >
+              <Text style={styles.deleteAccountButtonText}>Delete Account</Text>
+            </TouchableOpacity>
           </View>
         </Animated.ScrollView>
         <Footer />
@@ -440,6 +476,19 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.colors.bamxYellow,
   },
   updateButtonText: {
+    fontFamily: fonts.PoppinsSemiBold,
+    color: Theme.colors.white,
+    fontSize: Theme.size.md,
+  },
+  deleteAccountButton: {
+    backgroundColor: Theme.colors.bamxRed,
+    padding: spacing * 1.5,
+    borderRadius: spacing,
+    alignItems: 'center',
+    marginTop: spacing * 2,
+    marginBottom: spacing * 4,
+  },
+  deleteAccountButtonText: {
     fontFamily: fonts.PoppinsSemiBold,
     color: Theme.colors.white,
     fontSize: Theme.size.md,

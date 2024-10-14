@@ -705,3 +705,12 @@ export async function verifyAndRegister(user: IUser, code: string) {
   }
 }
 
+export async function deleteAccount(userId: string) {
+  try {
+    const response = await axios.delete(`${API_URL}/users/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    throw new Error('Error al eliminar la cuenta');
+  }
+}
