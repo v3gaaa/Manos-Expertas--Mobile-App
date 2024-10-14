@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express';
-import User, {IUser} from '../models/User';
+import User, { IUser } from '../models/User';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
-import CryptoJS from 'crypto-js';
+import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -22,9 +22,8 @@ transporter.verify(function(error, success) {
     console.log(error);
   } else {
     console.log('NodeMailer is ready to send emails');
-};
+  }
 });
-
 
 const router = express.Router();
 
@@ -57,9 +56,11 @@ router.get('/users/:id', async (req: Request, res: Response) => {
 router.post('/users', async (req: Request, res: Response) => {
   console.log('Creating new user with body:', req.body);
   const { name, lastName, email, password, phoneNumber, profilePicture, address } = req.body;
-  const user = new User({ name, lastName, email, password, phoneNumber, profilePicture, address });
-  
+
   try {
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const user = new User({ name, lastName, email, password: hashedPassword, phoneNumber, profilePicture, address });
     const newUser = await user.save();
     res.status(201).json(newUser);
   } catch (error) {
@@ -118,11 +119,9 @@ router.post('/login', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'El usuario no fue encontrado' });
     }
 
-    // Hash the input password with the user's salt
-    const hashedInputPassword = CryptoJS.SHA512(password + user.salt).toString();
-
-    // Compare the hashed password with the stored password
-    if (user.password !== hashedInputPassword) {
+    // Compare the input password with the stored hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(401).json({ message: 'Contraseña incorrecta' });
     }
 
@@ -156,10 +155,10 @@ router.post('/signup', async (req: Request, res: Response) => {
     }
 
     // Generar salt y hashear la contraseña
-    const salt = CryptoJS.lib.WordArray.random(16).toString();
-    const hashedPassword = CryptoJS.SHA512(password + salt).toString();
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-    const user = new User({ name, lastName, email, password: hashedPassword, phoneNumber, profilePicture, address, salt });
+    const user = new User({ name, lastName, email, password: hashedPassword, phoneNumber, profilePicture, address });
     const newUser = await user.save();
 
     const token = generateToken(newUser);
@@ -170,42 +169,6 @@ router.post('/signup', async (req: Request, res: Response) => {
     res.status(400).json({ message: 'No se pudo registrar el usuario. Por favor intente nuevamente.' });
   }
 });
-
-// Update a user by ID
-router.put('/users/:id', async (req: Request, res: Response) => {
-  const { name, lastName, phoneNumber, profilePicture, address } = req.body;
-
-  try {
-    const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
-      { name, lastName, phoneNumber, profilePicture, address },  // Only allow certain fields to be updated
-      { new: true }
-    );
-
-    if (!updatedUser) return res.status(404).json({ message: 'User not found' });
-
-    res.json(updatedUser);
-  } catch (error) {
-    console.error('Error updating user:', error);
-    res.status(400).json({ message: error });
-  }
-});
-
-// Create a new admin user
-router.post('/admin', async (req: Request, res: Response) => {
-  console.log('Creating new admin with body:', req.body);
-  const { name, lastName, email, password, phoneNumber, profilePicture, address, salt } = req.body;
-  const user = new User({ name, lastName, email, password, phoneNumber, profilePicture, address, admin: true, salt });
-  
-  try {
-    const newAdmin = await user.save();
-    res.status(201).json(newAdmin);
-  } catch (error) {
-    console.error('Error creating admin:', error);
-    res.status(400).json({ message: error });
-  }
-});
-
 
 // Solicitar restablecimiento de contraseña
 router.post('/request-password-reset', async (req: Request, res: Response) => {
@@ -318,10 +281,9 @@ router.post('/reset-password', async (req: Request, res: Response) => {
     }
 
     // Actualizar la contraseña
-    const salt = CryptoJS.lib.WordArray.random(16).toString();
-    const hashedPassword = CryptoJS.SHA512(newPassword + salt).toString();
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
     user.password = hashedPassword;
-    user.salt = salt;
     user.resetCode = undefined; // Eliminar el código después de usarlo
     await user.save();
 
@@ -331,4 +293,5 @@ router.post('/reset-password', async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Error al restablecer la contraseña' });
   }
 });
+
 export default router;
