@@ -23,10 +23,12 @@ export default function SearchScreen() {
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>(query);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchWorkers = async (searchTerm: string) => {
     try {
       setLoading(true);
+      setError(null);
       let workerData;
       if (!searchTerm || searchTerm.trim() === '' || searchTerm.toLowerCase() === 'todos') {
         workerData = await getAllWorkers();
@@ -34,6 +36,12 @@ export default function SearchScreen() {
         workerData = await getWorkersByQuery(searchTerm);
       }
       
+      if (!workerData || workerData.length === 0) {
+        setError('No se encontraron trabajadores');
+        setWorkers([]);
+        return;
+      }
+
       // Fetch ratings for each worker
       const workersWithRatings = await Promise.all(workerData.map(async (worker: Worker) => {
         const ratingData = await getWorkerAverageRating(worker._id);
@@ -51,9 +59,10 @@ export default function SearchScreen() {
         return b.rating - a.rating;
       });
       
-      setWorkers(sortedWorkers || []);
+      setWorkers(sortedWorkers);
     } catch (error) {
       console.error('Error fetching workers:', error);
+      setError('Error al buscar trabajadores. Por favor, intente de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -111,6 +120,12 @@ export default function SearchScreen() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Theme.colors.bamxYellow} />
           <Text style={styles.loadingText}>Buscando trabajadores...</Text>
+        </View>
+      ) : error ? (
+        <View style={styles.noResultsContainer}>
+          <Feather name="alert-circle" size={64} color={Theme.colors.bamxGrey} />
+          <Text style={styles.noResultsText}>{error}</Text>
+          <Text style={styles.noResultsSubtext}>Intenta con otra búsqueda</Text>
         </View>
       ) : workers.length === 0 ? (
         <View style={styles.noResultsContainer}>

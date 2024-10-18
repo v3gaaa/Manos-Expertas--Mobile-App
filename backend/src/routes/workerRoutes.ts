@@ -15,6 +15,9 @@ router.get('/workers', async (req: Request, res: Response) => {
   }
 });
 
+// Create a text index for relevant fields
+Worker.collection.createIndex({ name: 'text', lastName: 'text', profession: 'text', description: 'text' });
+
 // Search workers by query
 router.get('/workers/search', async (req: Request, res: Response) => {
   const { query } = req.query;
@@ -26,14 +29,29 @@ router.get('/workers/search', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Search query is required' });
     }
 
-    const workers = await Worker.find({
-      $or: [
-        { name: { $regex: query, $options: 'i' } },
-        { lastName: { $regex: query, $options: 'i' } },
-        { profession: { $regex: query, $options: 'i' } },
-        { description: { $regex: query, $options: 'i' } },
-      ],
-    });
+    // Normalize the query by removing accents and converting to lowercase
+    const normalizedQuery = query.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+    // First, try a text search
+    let workers = await Worker.find(
+      { $text: { $search: normalizedQuery } },
+      { score: { $meta: 'textScore' } }
+    ).sort({ score: { $meta: 'textScore' } });
+
+    // If no results, fall back to a more lenient regex search
+    if (workers.length === 0) {
+      const regexPattern = normalizedQuery.split(' ').map(term => `(?=.*${term})`).join('');
+      const regex = new RegExp(regexPattern, 'i');
+
+      workers = await Worker.find({
+        $or: [
+          { name: { $regex: regex } },
+          { lastName: { $regex: regex } },
+          { profession: { $regex: regex } },
+          { description: { $regex: regex } },
+        ],
+      });
+    }
 
     if (workers.length === 0) {
       console.log('No workers found for query:', query);
